@@ -1,0 +1,248 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE UWSimScene SYSTEM "UWSimScene.dtd" >
+
+<UWSimScene>
+    <oceanState>
+        <windx> 0.04 </windx>
+        <windy> 0.04 </windy>
+        <windSpeed> 12 </windSpeed>
+        <depth> 1000 </depth>
+        <reflectionDamping> 0.35 </reflectionDamping>
+        <waveScale> 1e-7 </waveScale>
+        <isNotChoppy> 0 </isNotChoppy>
+        <choppyFactor> 2.5 </choppyFactor>
+        <crestFoamHeight> 2.2 </crestFoamHeight>
+        <oceanSurfaceHeight> 0 </oceanSurfaceHeight>
+        <fog>
+            <density> 0.01</density>
+            <color>
+                <r>0</r>
+                <g>0.05</g>
+                <b>0.3</b>
+            </color>
+        </fog>
+        <color>
+            <r>0.0</r>
+            <g>0.05</g>
+            <b>0.3</b>
+        </color>
+        <attenuation>
+            <r>0.015</r>
+            <g>0.0075 </g>
+            <b> 0.005 </b>
+        </attenuation>
+    </oceanState>
+    <simParams>
+        <disableShaders> 0 </disableShaders>
+        <resw> 1280 </resw>
+        <resh> 720 </resh>
+        <offsetp>
+            <x>0</x>
+            <y>0</y>
+            <z>0</z>
+        </offsetp>
+        <offsetr>
+            <x> 3.14</x>
+            <y> 0</y>
+            <z> -1.57 </z>
+        </offsetr>
+        <enablePhysics> 0 </enablePhysics>
+        <showTrajectory>
+            <target>dolphin</target>
+        </showTrajectory>
+    </simParams>
+    <camera>
+        <freeMotion> 1 </freeMotion>
+        <objectToTrack>dolphin/shell</objectToTrack>
+        <fov> 90 </fov>
+        <aspectRatio> 1.33 </aspectRatio>
+        <near> 0.1 </near>
+        <far> 100 </far>
+        <position>
+            <x>-5</x>
+            <y>-5 </y>
+            <z>8 </z>
+        </position>
+        <lookAt>
+            <x>0</x>
+            <y>0 </y>
+            <z>0 </z>
+        </lookAt>
+    </camera>
+
+    <vehicle>
+        <name>dolphin</name>
+        <file>data/scenes/dolphin.urdf</file>
+        <position>
+            <x> -1 </x>
+            <y> 1 </y>
+            <z> 4 </z>
+        </position>
+        <orientation>
+            <r>0</r>
+            <p>0</p>
+            <y>0</y>
+        </orientation>
+
+        <virtualCamera>
+            <name>jevois</name>
+            <relativeTo>shell</relativeTo>
+            <resw> 320 </resw>
+            <resh> 240 </resh>
+            <position>
+                <x>0.04</x>
+                <y> 0 </y>
+                <z> 0 </z>
+            </position>
+            <orientation>
+                <r>-1.57</r>
+                <p>0</p>
+                <y>1.57 </y>
+            </orientation>
+            <baseline> 0.0 </baseline>
+        </virtualCamera>
+        <structuredLightProjector>
+            <name>projected_light</name>
+            <relativeTo>shell</relativeTo>
+            <fov>21</fov>
+            <image_name>data/textures/laser_circles.png</image_name>
+            <laser>1</laser>
+            <position>
+                <x>0.04</x>
+                <y>0</y>
+                <z>0</z>
+            </position>
+            <orientation>
+                <r>-1.57</r>
+                <p>0</p>
+                <y>1.57 </y>
+            </orientation>
+        </structuredLightProjector>
+        <imu>
+            <name>imu</name>
+            <relativeTo>shell</relativeTo>
+            <position>
+                <x>0</x>
+                <y>0</y>
+                <z>0</z>
+            </position>
+            <orientation>
+                <r>0</r>
+                <p>0</p>
+                <y>0</y>
+            </orientation>
+            <std>0.1</std>
+        </imu>
+        <ForceSensor>
+            <name>ForceDolphin</name>
+            <target>shell</target>
+            <offsetp>
+                <x>0.0</x>
+                <y>0.0</y>
+                <z>0.0</z>
+            </offsetp>
+            <offsetr>
+                <x>0.0</x>
+                <y>0.0</y>
+                <z>0.0</z>
+            </offsetr>
+        </ForceSensor>
+    </vehicle>
+
+    <object>
+        <name>terrain</name>
+        <file>terrain/CIRS/cirs_trident.osg</file>
+        <position>
+            <x> 0</x>
+            <y> 0 </y>
+            <z> 0 </z>
+        </position>
+        <orientation>
+            <r>0</r>
+            <p>0</p>
+            <y>0</y>
+        </orientation>
+        <offsetp>
+            <x>-1.5</x>
+            <y>0</y>
+            <z>0</z>
+        </offsetp>
+        <offsetr>
+            <x> 3.1415</x>
+            <y> 0</y>
+            <z> -1.57 </z>
+        </offsetr>
+        <physics>
+            <mass> 0 </mass>
+            <collisionShapeType> trimesh </collisionShapeType>
+        </physics>
+    </object>
+
+    <object>
+        <name>pipe</name>
+        <file>objects/straight_pipe_2.stl</file>
+        <position>
+            <x> 1</x>
+            <y> 1 </y>
+            <z> 4 </z>
+        </position>
+        <orientation>
+            <r>0</r>
+            <p>0 </p>
+            <y>0 </y>
+        </orientation>
+        <physics>
+            <mass> 0 </mass>
+            <collisionShapeType> sphere </collisionShapeType>
+        </physics>
+    </object>
+
+
+
+
+    <rosInterfaces>
+        <ROSOdomToPAT>
+            <topic> /dataNavigator </topic>
+            <vehicleName> dolphin </vehicleName>
+        </ROSOdomToPAT>
+
+        <PATToROSOdom>
+            <topic> /uwsim/dolphin_odom </topic>
+            <vehicleName> dolphin </vehicleName>
+        </PATToROSOdom>
+
+        <WorldToROSTF>
+            <rootName> world </rootName>
+            <enableObjects> 1 </enableObjects>
+            <rate>10</rate>
+        </WorldToROSTF>
+
+        <VirtualCameraToROSImage>
+            <cameraName>jevois</cameraName>
+            <imageTopic> /dolphin/camera </imageTopic>
+            <infoTopic> /dolphin/camera_info </infoTopic>
+        </VirtualCameraToROSImage>
+
+        <ROSTwistToPAT>
+            <topic> /dolphin/velocityCommand </topic>
+            <vehicleName> dolphin </vehicleName>
+        </ROSTwistToPAT>
+
+        <ROSPoseToPAT>
+            <topic> /dolphin/pose_sp</topic>
+            <vehicleName> dolphin </vehicleName>
+        </ROSPoseToPAT>
+        <ImuToROSImu>
+            <name>imu</name>
+            <topic>dolphin/imu</topic>
+            <rate>100</rate>
+        </ImuToROSImu>
+        <ForceSensorROS>
+            <name>ForceDolphin</name>
+            <topic>dolphin/ForceSensor</topic>
+            <rate>100</rate>
+        </ForceSensorROS>
+    </rosInterfaces>
+
+</UWSimScene>

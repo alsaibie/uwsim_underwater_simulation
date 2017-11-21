@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="dolphin" >
+
+    <xacro:property name="pi" value="3.141592654" />
+    <xacro:property name="robot_parts_path" value="robot/DOLPHIN/dolphin" />
+    <xacro:property name="ext" value="3ds" />
+
+    <xacro:property name="theta1" value="0.139277274" />
+    <xacro:property name="theta2" value="1.972222055" />
+
+    <xacro:property name="cosTheta1" value="0.990316589" />
+    <xacro:property name="sinTheta1" value="0.138827424" />
+
+    <xacro:property name="cos180minusTheta2" value="0.390731128" />
+    <xacro:property name="sin180minusTheta2" value="0.920504853" />
+
+
+
+
+    <link name="shell">
+        <inertial>
+            <mass value="0.5" />
+            <inertia ixx="10"  ixy="0"  ixz="0" iyy="10" iyz="0" izz="10" />
+        </inertial>
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0.1"/>
+            <geometry>
+                <mesh filename="${robot_parts_path}_shell.${ext}"/>
+            </geometry>
+        </visual>
+    </link>
+
+    <!--
+    <link name="thrust_attachment">
+        <visual>
+            <origin rpy="0 0 0" xyz="-.2 0 0"/>
+            <geometry>
+                <mesh filename="${robot_parts_path}_thrust_attachment.${ext}"/>
+            </geometry>
+        </visual>
+    </link>
+
+    <joint name="shell_to_thrust_attachment" type="fixed">
+        <parent link="shell"/>
+        <child link="thrust_attachment"/>
+        <origin rpy="0 0 0" xyz="-0.2 0 0"/>
+    </joint>
+    -->
+
+</robot>

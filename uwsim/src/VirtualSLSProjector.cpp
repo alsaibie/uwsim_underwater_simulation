@@ -33,7 +33,7 @@ VirtualSLSProjector::VirtualSLSProjector()
   osg::ref_ptr < osg::Node > node = new osg::Node;
   osg::ref_ptr < osg::Node > root = new osg::Node;
   std::string name = "SLSprojector";
-  std::string image_name = "laser_texture.png";
+  std::string image_name = "laser_circles.png";
   double range = 0; 
   double fov = 60.0;
   init(name,"base_link", root, node, image_name, range, fov, 0);
@@ -75,14 +75,16 @@ void VirtualSLSProjector::init(std::string name,std::string parentName, osg::Nod
   dbgDepthTexture = new osg::Texture2D;
   dbgDepthTexture->setTextureSize(texture_to_project->s(), texture_to_project->t()); //CHECK: Maybe we can use a smaller texture?
   dbgDepthTexture->setInternalFormat(GL_DEPTH_COMPONENT);
-  dbgDepthTexture->setFilter(osg::Texture::MIN_FILTER, osg::Texture::LINEAR);
-  dbgDepthTexture->setFilter(osg::Texture::MAG_FILTER, osg::Texture::LINEAR);
+  dbgDepthTexture->setFilter(osg::Texture::MIN_FILTER, osg::Texture::NEAREST);
+  dbgDepthTexture->setFilter(osg::Texture::MAG_FILTER, osg::Texture::NEAREST);
   root->getOrCreateStateSet()->setTextureAttributeAndModes(3, dbgDepthTexture, osg::StateAttribute::ON);
   camera.textureCamera->attach(osg::Camera::DEPTH_BUFFER, dbgDepthTexture);
 
+
+
   //Uniform to update texture
   osg::Matrixd lmvpm = camera.textureCamera->getViewMatrix() * camera.textureCamera->getProjectionMatrix()
-      * osg::Matrix::translate(1, 1, 1) * osg::Matrix::scale(0.5, 0.5, 0.5);
+      * osg::Matrix::translate(1, 1, 1) * osg::Matrix::scale(0.4, 0.5, 0.5);
   osg::Uniform* u = new osg::Uniform(osg::Uniform::FLOAT_MAT4,"LightModelViewProjectionMatrix");
   u->setUpdateCallback(new UpdateLMVPM(camera.textureCamera));
   root->getOrCreateStateSet()->addUniform(u);

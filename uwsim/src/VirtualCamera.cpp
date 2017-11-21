@@ -155,13 +155,15 @@ VirtualCamera::VirtualCamera(osg::Group *uwsim_root, std::string name,std::strin
 VirtualCamera::VirtualCamera(osg::Group *uwsim_root, std::string name,std::string parentName, osg::Node *trackNode, int width,
                              int height, double fov, double aspectRatio)
 { //Used in structured light projector as shadow camera
-  init(uwsim_root, name, parentName, trackNode, width, height, 0.0, "", NULL, 1, fov, aspectRatio, 0.1, 20, 0, 0,NULL,0);
+  init(uwsim_root, name, parentName, trackNode, width, height, 0.0, "", NULL, 1, fov, aspectRatio, 0.05, 10, 0, 0,
+       NULL,0);
 }
 
 VirtualCamera::VirtualCamera(osg::Group *uwsim_root, std::string name,std::string parentName, osg::Node *trackNode, int width,
                              int height,double baseline, std::string frameId,double fov,SceneBuilder *oscene,float std,  Parameters *params=NULL, int range=0, int bw=0)
 {//Standard camera / depth camera
-  init(uwsim_root, name, parentName, trackNode, width, height, baseline, frameId, params, range, fov, width/(float)height, 0.18, 2000, bw, 1,oscene,std);
+  init(uwsim_root, name, parentName, trackNode, width, height, baseline, frameId, params, range, fov, width/(float)
+                                                                                                                    height, 0.05, 10, bw, 1,oscene,std);
 }
 
 void VirtualCamera::createCamera()

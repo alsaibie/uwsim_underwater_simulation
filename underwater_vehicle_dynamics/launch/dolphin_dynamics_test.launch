@@ -1,0 +1,19 @@
+<launch>
+
+    // TODO: CHANGE ALL THIS to launch the test py node and the dynamics node and what about plotting result later?
+    // First Start the dynamics node, then start the test node.
+    <arg name="record_dynamic_params" default="true" />
+
+    <include file="$(find underwater_vehicle_dynamics)/launch/dolphin_dynamics.launch">
+        <arg name="namespace" value="dolphin" />
+        <arg name="params" value="$(find underwater_vehicle_dynamics)/config/dynamics_dolphin.yaml" />
+    </include>
+
+    <rosparam param="/dolphin/dynamics/external_force_topic">dolphin/ForceSensor</rosparam>
+
+    <node pkg="rosbag" type="record" name="rosbag_record_dynamic_params"
+          args="record -o /tmp/dynamics_param /dolphin/dynamics/dynamics_param" if="$(arg record_dynamic_params)"/>
+
+    <node name="dolphin_dynamics_test" pkg="underwater_vehicle_dynamics" type="dynamics_dolphin_test.py"
+          output="screen" respawn="false" required="true"/>
+</launch>
