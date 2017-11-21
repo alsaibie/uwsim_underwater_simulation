@@ -1,0 +1,13 @@
+<launch>
+    <!-- uwsim Node -->
+    <include file="$(find underwater_vehicle_dynamics)/launch/UWSim_dolphin_dynamics_noosg.launch"/>
+    <!-- -->
+    <!-- UWSim Joystick Node -->
+    <!--<include file="$(find uwsim_joystick)/launch/uwsim_joystick_frsky.launch"/>-->
+    <include file="$(find uwsim_joystick)/launch/uwsim_joystick_logitechf710.launch"/>
+    <!--<include file="$(find uwsim_joystick)/launch/uwsim_joystick_logitech3d.launch"/>-->
+    <!-- -->
+    <!-- Control Params -->
+    <!--<param name="control_mode" value="1" type="int"/>-->
+    <node pkg="uwsim_control" type="uwsim_control" name="dolphin_controller" output="screen"/>
+</launch>

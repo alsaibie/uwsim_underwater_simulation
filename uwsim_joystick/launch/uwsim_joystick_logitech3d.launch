@@ -1,0 +1,23 @@
+<launch>
+ <!-- joy node -->
+  <node respawn="true" pkg="joy"
+        type="joy_node" name="joy" >
+    <param name="dev" type="string" value="/dev/input/js1"/>
+    <param name="autorepeat_rate" value="100" />
+    <param name="deadzone" value="0.12" />
+  </node>
+    <!-- Axes -->
+    <param name="thrust" value="3" type="int"/>
+    <param name="roll" value="0" type="int"/>
+    <param name="pitch" value="1" type="int"/>
+    <param name="yaw" value="2" type="int"/>
+    <param name="thrust_inv" value="1" type="int"/>
+    <param name="roll_inv" value="-1" type="int"/>
+    <param name="pitch_inv" value="-1" type="int"/>
+    <param name="yaw_inv" value="-1" type="int"/>
+    <!--linear range is the range of raw values from joystick -->
+    <param name="linear_range" value="2" type="int"/>
+    <!--linear start is the lowest value in the range -->
+    <param name="linear_start_" value="-1" type="int"/>
+  <node  pkg="uwsim_joystick" type="uwsim_joystick" name="uwsim_joystick_logitech3d"/>
+</launch>

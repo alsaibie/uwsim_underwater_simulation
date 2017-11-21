@@ -2,3 +2,9 @@ underwater_vehicle_dynamics/cmake-build-debug/
 underwater_vehicle_dynamics/.idea
 uwsim/cmake-build-debug/
 uwsim/.idea
+uwsim_control/cmake-build-debug/
+uwsim_control/.idea
+uwsim_joystick/cmake-build-debug/
+uwsim_joystick/.idea
+uwsim_trajectory/cmake-build-debug/
+uwsim_trajectory/.idea
