@@ -4,6 +4,6 @@
 	<rosparam command="load" file="$(arg params)" />
         <arg name="input_topic" default="/$(arg namespace)/thrusters_input" />
         <arg name="output_topic" default="/$(arg namespace)/pose_sp" />
-	<node name="$(arg namespace)_dynamics" pkg="underwater_vehicle_dynamics" type="dynamics_dolphin.py"
+	<node name="$(arg namespace)_dynamics" pkg="uwsim_dynamics" type="dynamics_dolphin.py"
           args="$(arg namespace) $(arg input_topic) $(arg output_topic)" output="screen" respawn="false"/>
 </launch>

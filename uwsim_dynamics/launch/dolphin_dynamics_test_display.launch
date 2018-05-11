@@ -1,4 +1,4 @@
 <launch>
-	<node name="dolphin_dynamics_test" pkg="underwater_vehicle_dynamics" type="dynamics_dolphin_test_display.py"
+	<node name="dolphin_dynamics_test" pkg="uwsim_dynamics" type="dynamics_dolphin_test_display.py"
           output="screen" respawn="false"/>
 </launch>

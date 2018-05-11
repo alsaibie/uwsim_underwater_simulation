@@ -7,5 +7,5 @@
         <arg name="input_topic" default="/$(arg namespace)/thrusters_input" />
         <arg name="output_topic" default="/$(arg namespace)/pose" />
 
-	<node name="dynamics_$(arg namespace)" pkg="underwater_vehicle_dynamics" type="dynamics.py" args="$(arg namespace) $(arg input_topic) $(arg output_topic)" output="screen" respawn="false"/>
+	<node name="dynamics_$(arg namespace)" pkg="uwsim_dynamics" type="dynamics.py" args="$(arg namespace) $(arg input_topic) $(arg output_topic)" output="screen" respawn="false"/>
 </launch>

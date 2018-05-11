@@ -5,7 +5,7 @@ import math
 
 samples = 400
 ctrl_input = []
-f = open('/home/alsaibie/UWSim/src/underwater_simulation/underwater_vehicle_dynamics/src/tests/data/thrusters_input' +
+f = open('/home/alsaibie/UWSim/src/underwater_simulation/uwsim_dynamics/src/tests/data/thrusters_input' +
          '.txt', 'wt')
 # TODO: make separate files for each case
 writer = csv.writer(f)

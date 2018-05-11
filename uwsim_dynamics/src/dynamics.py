@@ -3,7 +3,7 @@
 # Basic ROS imports
 import roslib
 
-roslib.load_manifest('underwater_vehicle_dynamics')
+roslib.load_manifest('uwsim_dynamics')
 import rospy
 import PyKDL
 import sys

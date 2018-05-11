@@ -1,20 +1,21 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(uwsim_dynamics)
 
-find_package(catkin REQUIRED COMPONENTS rospy std_msgs nav_msgs geometry_msgs sensor_msgs tf tf_conversions
-#python_orocos_kdl
-)
+find_package(catkin REQUIRED COMPONENTS rospy std_msgs nav_msgs geometry_msgs sensor_msgs tf tf_conversions)
 
+set(UWSIM_MSGS_PATH /home/alsaibie/UWSim/install_isolated/)
+find_package(uwsim_msgs PATHS ${UWSIM_MSGS_PATH})
+#catkin_python_setup()
 #add_message_files(
 #        FILES
 #)
-generate_messages(
-        DEPENDENCIES
-        std_msgs
-)
+#generate_messages(
+#        DEPENDENCIES
+#        std_msgs
+#)
 
 catkin_package(
-        CATKIN_DEPENDS rospy std_msgs nav_msgs geometry_msgs sensor_msgs tf tf_conversions message_runtime
+        CATKIN_DEPENDS rospy std_msgs nav_msgs geometry_msgs sensor_msgs tf tf_conversions message_runtime uwsim_msgs
         #python_orocos_kdl
 )
 

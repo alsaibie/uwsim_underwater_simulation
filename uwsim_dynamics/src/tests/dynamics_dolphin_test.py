@@ -8,9 +8,9 @@ from geometry_msgs.msg import Pose, Quaternion
 from std_msgs.msg import Float64MultiArray
 
 # Set input trajectory file and output odometry log files
-trajectory_file = '/home/alsaibie/UWSim/src/underwater_simulation/underwater_vehicle_dynamics/src/tests/data' \
+trajectory_file = '/home/alsaibie/UWSim/src/underwater_simulation/uwsim_dynamics/src/tests/data' \
                   '/thrusters_input.txt'
-pose_log_file = '/home/alsaibie/UWSim/src/underwater_simulation/underwater_vehicle_dynamics/src/tests/data' \
+pose_log_file = '/home/alsaibie/UWSim/src/underwater_simulation/uwsim_dynamics/src/tests/data' \
                 '/dynamics_output.csv'
 pose_save = False
 shutdown = False

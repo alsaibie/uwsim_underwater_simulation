@@ -16,11 +16,12 @@ from geometry_msgs.msg import Quaternion
 from geometry_msgs.msg import WrenchStamped
 from sensor_msgs.msg import Imu
 from uwsim_msgs.msg import dynamics_param
+from uwsim_msgs.msg import full_state
 
 # import services
 from std_srvs.srv import Empty
 
-roslib.load_manifest('underwater_vehicle_dynamics')
+roslib.load_manifest('uwsim_dynamics')
 
 
 class Dynamics:
@@ -297,6 +298,9 @@ class Dynamics:
             self.invers_dyanmics_intialized = True
         self.v = self.integral(self.v_dot, self.v, self.diffq_period)
 
+        self.state24_msg.v = self.v
+        self.state24_msg.v_dot = self.v_dot
+
         return self.v
 
     def inverse_jacobian(self, p):
@@ -366,6 +370,9 @@ class Dynamics:
         self.p_e[3:6] = tf.transformations.euler_from_quaternion(self.p_q[3:7], 'rxyz')
         # print("exp", expq)
 
+        self.state24_msg.p_q = self.p_q
+        self.state24_msg.p_lin_dot = q_dot_translation_q
+
         return self.p_e
 
     def update_collision(self, force):
@@ -410,6 +417,7 @@ class Dynamics:
             dynamics_msg.time_secs = float(self.t)
             # print("mass matrix", dynamics_msg.mass_matrix)
             self.pub_dyn_param.publish(dynamics_msg)
+
             self.dyn_bag.write('dynamics param', dynamics_msg)
 
     def pubIMU(self, event):
@@ -445,7 +453,6 @@ class Dynamics:
             # imu_msg.linear_acceleration.z = .. .+ a_noise[2]
             # imu_msg.linear_acceleration_covariance[0] = imu_msg.linear_acceleration_covariance[4] = \
             # imu_msg.linear_acceleration_covariance[8] = pow(self.imu_a_std, 2)
-
             self.pub_imu.publish(imu_msg)
 
     def compute_tf(self, tf):
@@ -557,10 +564,13 @@ class Dynamics:
         self.tau_ = []
         self.M = []
 
+        # Full State Handler
+        self.state24_msg = full_state()
         #   Create publisher
         self.pub_pose = rospy.Publisher(self.output_topic, Pose, queue_size=10)
         self.pub_imu = rospy.Publisher(self.output_imu_topic, Imu, queue_size=10)
-        self.pub_dyn_param = rospy.Publisher("/dolphin/dynamics/dynamics_param", dynamics_param, queue_size=10)
+        self.pub_dyn_param = rospy.Publisher("/dolphin/dynamics/dynamics_parammmm", dynamics_param, queue_size=10)
+        self.pub_state24 = rospy.Publisher("/dolphin/dynamics/full_state", full_state, queue_size=10)
         rospy.init_node("dynamics_" + self.vehicle_name, log_level=rospy.DEBUG)
 
         # Setup the battery model
@@ -640,6 +650,9 @@ class Dynamics:
         t2 = rospy.Time.now()
         self.t = (t2 - self.t0).to_sec()
         p = self.diffq_period - (t2 - t1).to_sec()
+
+        # Publish Full State
+        self.pub_state24.publish(self.state24_msg)
         if p < 0.0: p = 0.0
         rospy.sleep(p)
 
