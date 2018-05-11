@@ -1,14 +1,14 @@
-### Simulated IMU Properties
-hil_sensor_period: 2            # Publish imu raw rate at 50 Hz
-hil_quaternion_period: 0.005       # Publish quaternion at 200 Hz
-hil_battery_period: 0.1            # Publish battery at 10 Hz
+## Simulated IMU Properties
+hil_sensor_period: 0.02       # Publish imu raw rate at 50 Hz
+hil_quaternion_period: 0.05   # Publish quaternion at 200 Hz
+hil_battery_period: 0.1       # Publish battery at 10 Hz
 
-# Sensor Properties
+## Sensor Properties
 sensor/accelerometer_std: 0.01
 sensor/gyro_std: 0.01
 sensor/mag_std: 0.01
 
-# Attitude Properties
+## Attitude Properties
 att/quaternion_std: 0.000000001    # Standard Deviation on euler Measurement
 att/omega_std: 0.002               # Standard Deviation on Angular Velocity Measurement
 att/acceleration_std: 0.01         # Standard deviation on Linear Acceleration

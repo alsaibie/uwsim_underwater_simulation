@@ -18,14 +18,16 @@ namespace uwsim
     {
     public:
         Sensor();
+
         ~Sensor() {}
+
         /* Utilities */
-        void print_internals(void);
+        void start(void);
 
     protected:
         ros::NodeHandle _nh;
 
-        /* Subscriptions */
+        /* Subscribers */
         ros::Subscriber _v_full_state_ros_sub;
         ros::Subscriber _v_power_ros_sub;
 
@@ -35,27 +37,33 @@ namespace uwsim
         ros::Publisher _v_hil_battery_ros_pub;
 
         /* ROS Callbacks */
-        void VehicleStateCallback(const uwsim_msgs::full_state::ConstPtr& state24);
+        void VehicleStateCallback(const uwsim_msgs::full_state::ConstPtr& state22_msg);
         void VehiclePowerCallback(const uwsim_msgs::power::ConstPtr& power);
-        /* msg handles */
-        uwsim_msgs::full_state     _state24_msg;
-        uwsim_msgs::power          _power_msg;
 
-        /* Outgoing*/
+        /* msg keepers */
+        uwsim_msgs::full_state     _state22;
+        uwsim_msgs::power          _power;
+
+        /* Outgoing */
         void send_hil_sensor_msg(void);
         void send_hil_quaternion_msg(void);
         void send_hil_batt_msg(void);
 
-
         /* Parameter List */
-        float _hil_sensor_period;
-        float _hil_quaternion_period;
-        float _hil_battery_period;
+        std::string _vehicle_name;
+        double _hil_sensor_period_sec;
+        double _hil_quaternion_period_sec;
+        double _hil_battery_period_sec;
         float _sen_accelerometer_std;
         float _sen_gyro_std;
         float _sen_mag_std;
         float _att_quaternion_std;
         float _att_omega_std;
         float _att_acceleration_std;
+
+        /* time services */
+        double _last_hil_sensor_sec;
+        double _last_hil_quaternion_sec;
+        double _last_hil_battery_sec;
     };
 }
