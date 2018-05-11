@@ -7,10 +7,10 @@ add_compile_options(-std=c++11)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED COMPONENTS roscpp rospy nav_msgs geometry_msgs sensor_msgs tf tf_conversions message_generation libmavconn mavlink
+find_package(catkin REQUIRED COMPONENTS roscpp rospy nav_msgs geometry_msgs sensor_msgs tf tf_conversions libmavconn mavlink
 )
-set(CMAKE_PREFIX_PATH /home/alsaibie/UWSim/install_isolated/)
-find_package(catkin REQUIRED COMPONENTS uwsim_msgs)
+set(UWSIM_MSGS_PATH /home/alsaibie/UWSim/install_isolated/)
+find_package(uwsim_msgs PATHS ${UWSIM_MSGS_PATH})
 
 #find_package(libmavconn REQUIRED)
 #find_package(mavlink REQUIRED)
@@ -50,11 +50,9 @@ set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/CMakeModules;{CMAKE_MODULE_PATH}")
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
- add_message_files(
-    FILES
-    ModelStates.msg
-    ModelState.msg
- )
+# add_message_files(
+#    FILES
+# )
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -191,7 +189,7 @@ add_executable(${PROJECT_NAME} src/uwsim_sitl.cpp)
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_uwsim_px4_sitl.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_uwsim_sitl.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()

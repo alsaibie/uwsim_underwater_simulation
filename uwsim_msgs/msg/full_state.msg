@@ -1,6 +1,6 @@
-# Full State Vector x = [p pdot v vdot]
+# Full State Vector x = [p_q pdot v vdot]
 std_msgs/Header header
-float32[6] p
-float32[6] pdot
-float32[6] v
-float32[6] vdot
+float32[7] p_q    # Quaternion Attitude w.r.t I Frame
+float32[3] p_lin_dot # Linear Velocity w.r.t I Frame
+float32[6] v    # Velocity w.r.t B Frame
+float32[6] v_dot # Acceleration w.r.t B Frame

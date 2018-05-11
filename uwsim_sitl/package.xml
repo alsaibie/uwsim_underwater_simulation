@@ -19,7 +19,7 @@
   <!-- Url tags are optional, but multiple are allowed, one per tag -->
   <!-- Optional attribute type can be: website, bugtracker, or repository -->
   <!-- Example: -->
-  <!-- <url type="website">http://wiki.ros.org/uwsim_px4_sitl</url> -->
+  <!-- <url type="website">http://wiki.ros.org/uwsim_sitl</url> -->
 
 
   <!-- Author tags are optional, multiple are allowed, one per tag -->
@@ -53,7 +53,6 @@
   <build_depend>roscpp</build_depend>
   <build_depend>rospy</build_depend>
   <build_depend>uwsim_msgs</build_depend>
-
   <build_export_depend>roscpp</build_export_depend>
   <build_export_depend>rospy</build_export_depend>
   <build_export_depend>uwsim_msgs</build_export_depend>

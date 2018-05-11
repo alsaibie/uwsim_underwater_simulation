@@ -2,7 +2,7 @@
 // Created by alsaibie on 5/7/18.
 //
 #include <functional>
-#include "uwsim_px4_sitl/uwsim_px4_sitl.hpp"
+#include "uwsim_sitl/uwsim_sitl.hpp"
 
 using namespace px4;
 
