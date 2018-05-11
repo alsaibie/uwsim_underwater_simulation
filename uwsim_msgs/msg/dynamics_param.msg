@@ -1,0 +1,17 @@
+# Message
+std_msgs/Header header
+float32[] mass_matrix
+float32[] damping_matrix
+float32[] motors_transient_dynamics
+float32[] tau
+float32[] coriolis_matrix
+float32[] c_v
+float32[] gravity
+float32[] v_dot
+float32[] v
+float32[] p_q
+float32[] p
+float32   mA_draw
+float32   mAh_consumed
+float32   Vnom
+float32   time_secs

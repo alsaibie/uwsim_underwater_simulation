@@ -60,14 +60,14 @@
         <near> 0.1 </near>
         <far> 100 </far>
         <position>
-            <x>-5</x>
-            <y>-5 </y>
-            <z>8 </z>
+            <x>-1</x>
+            <y>-2 </y>
+            <z>-3 </z>
         </position>
         <lookAt>
             <x>0</x>
             <y>0 </y>
-            <z>0 </z>
+            <z>-4 </z>
         </lookAt>
     </camera>
 
@@ -81,8 +81,8 @@
         </position>
         <orientation>
             <r>0</r>
-            <p>0</p>
-            <y>0</y>
+            <p>3.14</p>
+            <y>-1.5</y>
         </orientation>
 
         <virtualCamera>

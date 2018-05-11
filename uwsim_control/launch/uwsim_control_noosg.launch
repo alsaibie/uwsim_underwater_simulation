@@ -1,6 +1,6 @@
 <launch>
     <!-- uwsim Node -->
-    <include file="$(find underwater_vehicle_dynamics)/launch/UWSim_dolphin_dynamics_noosg.launch"/>
+    <include file="$(find underwater_vehicle_dynamics)/launch/uwsim_dolphin_dynamics_noosg.launch"/>
     <!-- -->
     <!-- UWSim Joystick Node -->
     <!--<include file="$(find uwsim_joystick)/launch/uwsim_joystick_frsky.launch"/>-->

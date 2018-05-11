@@ -35,96 +35,96 @@ public:
     void spin_controller();
 
 private:
-  //TODO: change manual_sp data type
-  void manualspCallback(const sensor_msgs::Joy::ConstPtr& manual_sp);
-  void imuCallback(const sensor_msgs::Imu::ConstPtr& att);
-  ros::NodeHandle nh_;
-  ros::Publisher mixed_pwm_pub_;
-  ros::Publisher att_rates_pid_rates_pub_;
-  ros::Subscriber manual_sp_sub_;
-  ros::Subscriber att_sub_;
-  Eigen::Vector4f mixed_att_output_;
+    //TODO: change manual_sp data type
+    void manualspCallback(const sensor_msgs::Joy::ConstPtr& manual_sp);
+    void imuCallback(const sensor_msgs::Imu::ConstPtr& att);
+    ros::NodeHandle nh_;
+    ros::Publisher mixed_pwm_pub_;
+    ros::Publisher att_rates_pid_rates_pub_;
+    ros::Subscriber manual_sp_sub_;
+    ros::Subscriber att_sub_;
+    Eigen::Vector4f mixed_att_output_;
 
-  void control_attitude(double dt);
-  void control_attitude_rates(double dt);
-  void mix_control_output(Eigen::Vector3f &att_control_, float thrust_sp, Eigen::Vector4f &mixed_att_control_);
-  Eigen::Vector3f pid_attenuations(float tpa_breakpoint, float tpa_rate);
-  /** A few defines to match those of px setup **/
-  vehicle_attitude_setpoint_s _v_att_sp;
-  control_state_s _ctrl_state;
-  vehicle_control_mode_s _v_control_mode;
-  vehicle_rates_setpoint_s _v_rates_sp;
-  actuator_armed_s _armed;
-  manual_control_setpoint_s  _manual_control_sp;
-  vehicle_status_s _vehicle_status;
-  dp_att_ctrl_status_s _controller_status;
-  actuator_controls_s			_actuators;
-  sensor_gyro_s			_sensor_gyro;
+    void control_attitude(double dt);
+    void control_attitude_rates(double dt);
+    void mix_control_output(Eigen::Vector3f &att_control_, float thrust_sp, Eigen::Vector4f &mixed_att_control_);
+    Eigen::Vector3f pid_attenuations(float tpa_breakpoint, float tpa_rate);
+    /** A few defines to match those of px setup **/
+    vehicle_attitude_setpoint_s _v_att_sp;
+    control_state_s _ctrl_state;
+    vehicle_control_mode_s _v_control_mode;
+    vehicle_rates_setpoint_s _v_rates_sp;
+    actuator_armed_s _armed;
+    manual_control_setpoint_s  _manual_control_sp;
+    vehicle_status_s _vehicle_status;
+    dp_att_ctrl_status_s _controller_status;
+    actuator_controls_s			_actuators;
+    sensor_gyro_s			_sensor_gyro;
 
     union {
-      struct {
-          uint16_t motor_pos	: 1; // 0 - true when any motor has saturated in the positive direction
-          uint16_t motor_neg	: 1; // 1 - true when any motor has saturated in the negative direction
-          uint16_t roll_pos	: 1; // 2 - true when a positive roll demand change will increase saturation
-          uint16_t roll_neg	: 1; // 3 - true when a negative roll demand change will increase saturation
-          uint16_t pitch_pos	: 1; // 4 - true when a positive pitch demand change will increase saturation
-          uint16_t pitch_neg	: 1; // 5 - true when a negative pitch demand change will increase saturation
-          uint16_t yaw_pos	: 1; // 6 - true when a positive yaw demand change will increase saturation
-          uint16_t yaw_neg	: 1; // 7 - true when a negative yaw demand change will increase saturation
-          uint16_t thrust_pos	: 1; // 8 - true when a positive thrust demand change will increase saturation
-          uint16_t thrust_neg	: 1; // 9 - true when a negative thrust demand change will increase saturation
-      } flags;
-      uint16_t value;
-  } _saturation_status;
+        struct {
+            uint16_t motor_pos	: 1; // 0 - true when any motor has saturated in the positive direction
+            uint16_t motor_neg	: 1; // 1 - true when any motor has saturated in the negative direction
+            uint16_t roll_pos	: 1; // 2 - true when a positive roll demand change will increase saturation
+            uint16_t roll_neg	: 1; // 3 - true when a negative roll demand change will increase saturation
+            uint16_t pitch_pos	: 1; // 4 - true when a positive pitch demand change will increase saturation
+            uint16_t pitch_neg	: 1; // 5 - true when a negative pitch demand change will increase saturation
+            uint16_t yaw_pos	: 1; // 6 - true when a positive yaw demand change will increase saturation
+            uint16_t yaw_neg	: 1; // 7 - true when a negative yaw demand change will increase saturation
+            uint16_t thrust_pos	: 1; // 8 - true when a positive thrust demand change will increase saturation
+            uint16_t thrust_neg	: 1; // 9 - true when a negative thrust demand change will increase saturation
+        } flags;
+        uint16_t value;
+    } _saturation_status;
 
-  Eigen::Vector3f _rates_prev;
-  Eigen::Vector3f _rates_sp;
-  Eigen::Vector3f _rates_sp_prev;
-  Eigen::Vector3f _rates_int;
-  float _thrust_sp;
-  Eigen::Vector3f _att_control;
-  Eigen::Vector4f _mixed_att_control;
+    Eigen::Vector3f _rates_prev;
+    Eigen::Vector3f _rates_sp;
+    Eigen::Vector3f _rates_sp_prev;
+    Eigen::Vector3f _rates_int;
+    float _thrust_sp;
+    Eigen::Vector3f _att_control;
+    Eigen::Vector4f _mixed_att_control;
 
-  Eigen::Matrix3f _I;
-  Eigen::Matrix3f _board_rotation = {};
+    Eigen::Matrix3f _I;
+    Eigen::Matrix3f _board_rotation = {};
 
     struct {
-      Eigen::Vector3f att_p;					/**< P gain for angular error */
-      Eigen::Vector3f rate_p;				/**< P gain for angular rate error */
-      Eigen::Vector3f rate_i;				/**< I gain for angular rate error */
-      Eigen::Vector3f rate_int_lim;			/**< integrator state limit for rate loop */
-      Eigen::Vector3f rate_d;				/**< D gain for angular rate error */
-      Eigen::Vector3f	rate_ff;			/**< Feedforward gain for desired rates */
-      float yaw_ff;						/**< yaw control feed-forward */
-      float roll_ff;						/**< roll control feed-forward */
+        Eigen::Vector3f att_p;					/**< P gain for angular error */
+        Eigen::Vector3f rate_p;				/**< P gain for angular rate error */
+        Eigen::Vector3f rate_i;				/**< I gain for angular rate error */
+        Eigen::Vector3f rate_int_lim;			/**< integrator state limit for rate loop */
+        Eigen::Vector3f rate_d;				/**< D gain for angular rate error */
+        Eigen::Vector3f	rate_ff;			/**< Feedforward gain for desired rates */
+        float yaw_ff;						/**< yaw control feed-forward */
+        float roll_ff;						/**< roll control feed-forward */
 
-      float tpa_breakpoint_p;				/**< Throttle PID Attenuation breakpoint */
-      float tpa_breakpoint_i;				/**< Throttle PID Attenuation breakpoint */
-      float tpa_breakpoint_d;				/**< Throttle PID Attenuation breakpoint */
-      float tpa_rate_p;					/**< Throttle PID Attenuation slope */
-      float tpa_rate_i;					/**< Throttle PID Attenuation slope */
-      float tpa_rate_d;					/**< Throttle PID Attenuation slope */
+        float tpa_breakpoint_p;				/**< Throttle PID Attenuation breakpoint */
+        float tpa_breakpoint_i;				/**< Throttle PID Attenuation breakpoint */
+        float tpa_breakpoint_d;				/**< Throttle PID Attenuation breakpoint */
+        float tpa_rate_p;					/**< Throttle PID Attenuation slope */
+        float tpa_rate_i;					/**< Throttle PID Attenuation slope */
+        float tpa_rate_d;					/**< Throttle PID Attenuation slope */
 
-      float roll_rate_max;
-      float pitch_rate_max;
-      float yaw_rate_max;
-      float yaw_auto_max;
-      Eigen::Vector3f dp_rate_max;		/**< attitude rate limits in stabilized modes */
-      Eigen::Vector3f auto_rate_max;		/**< attitude rate limits in auto modes */
-      Eigen::Vector3f acro_rate_max;		/**< max attitude rates in acro mode */
-      float rattitude_thres;
+        float roll_rate_max;
+        float pitch_rate_max;
+        float yaw_rate_max;
+        float yaw_auto_max;
+        Eigen::Vector3f dp_rate_max;		/**< attitude rate limits in stabilized modes */
+        Eigen::Vector3f auto_rate_max;		/**< attitude rate limits in auto modes */
+        Eigen::Vector3f acro_rate_max;		/**< max attitude rates in acro mode */
+        float rattitude_thres;
 
-      int motion_type;
-      float thrust_factor;
-      float idle_speed;
+        int motion_type;
+        float thrust_factor;
+        float idle_speed;
 
-      int bat_scale_en;
+        int bat_scale_en;
 
-      int board_rotation;
+        int board_rotation;
 
-      float board_offset[3];
+        float board_offset[3];
 
-  }		_params;
+    }		_params;
     /**
    * Rotor Mixing scales
    */
@@ -430,7 +430,6 @@ void ControlUWSim::control_attitude(double dt) {
 
   _thrust_sp = _v_att_sp.thrust;
 
-  /* Quaternion Order : */
   /* construct attitude setpoint rotation matrix */
   Eigen::Quaternionf q_sp(_v_att_sp.q_d[0], _v_att_sp.q_d[1], _v_att_sp.q_d[2], _v_att_sp.q_d[3]);
   Eigen::Matrix3f R_sp = q_sp.matrix();
@@ -586,12 +585,12 @@ void ControlUWSim::control_attitude_rates(double dt) {
 //  PX4_INFO("Rates error - r ctlr: %f, %f, %f", (double) rates_err(0), (double) rates_err(1), (double) rates_err(2));
   ROS_INFO("dt: %f", dt);
   /* PID Att Control */ //TODO: fix, it should be rates_err not att_control and check why I have att_control here. OK
-    // TODO: .. Actually, I'm passing _att_control to the mixer, note the rates_error. the integral portion is only updated now
-    // then used in the following timestep
+  // TODO: .. Actually, I'm passing _att_control to the mixer, note the rates_error. the integral portion is only updated now
+  // then used in the following timestep
   _att_control = rates_p_scaled.cwiseProduct(rates_err);// +
-                 // _rates_int +
-                 // rates_d_scaled.cwiseProduct(_rates_prev - rates) / dt +
-                 //_params.rate_ff.cwiseProduct(_rates_sp);
+  // _rates_int +
+  // rates_d_scaled.cwiseProduct(_rates_prev - rates) / dt +
+  //_params.rate_ff.cwiseProduct(_rates_sp);
   ROS_INFO("att control: %f, %f, %f", _att_control(0), _att_control(1), _att_control(2));
   _rates_sp_prev = _rates_sp;
   _rates_prev = rates;

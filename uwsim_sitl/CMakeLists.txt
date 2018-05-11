@@ -1,17 +1,19 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(uwsim_joystick)
+project(uwsim_sitl)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
-add_compile_options(-std=c++11)
 add_compile_options(-std=c++11)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED COMPONENTS
-  joy
-  roscpp
+find_package(catkin REQUIRED COMPONENTS roscpp rospy nav_msgs geometry_msgs sensor_msgs tf tf_conversions message_generation libmavconn mavlink
 )
+set(CMAKE_PREFIX_PATH /home/alsaibie/UWSim/install_isolated/)
+find_package(catkin REQUIRED COMPONENTS uwsim_msgs)
+
+#find_package(libmavconn REQUIRED)
+#find_package(mavlink REQUIRED)
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/CMakeModules;{CMAKE_MODULE_PATH}")
 
 ## System dependencies are found with CMake's conventions
@@ -48,11 +50,11 @@ set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/CMakeModules;{CMAKE_MODULE_PATH}")
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
-#   Message1.msg
-#   Message2.msg
-# )
+ add_message_files(
+    FILES
+    ModelStates.msg
+    ModelState.msg
+ )
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -99,14 +101,14 @@ set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/CMakeModules;{CMAKE_MODULE_PATH}")
 ###################################
 ## The catkin_package macro generates cmake config files for your package
 ## Declare things to be passed to dependent projects
-## INCLUDE_DIRS: uncomment this if you package contains header files
+## INCLUDE_DIRS: uncomment this if your package contains header files
 ## LIBRARIES: libraries you create in this project that dependent projects also need
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES uwsim_joystick
-   CATKIN_DEPENDS joy roscpp
+  INCLUDE_DIRS include
+#  LIBRARIES uwsim_sitl
+  CATKIN_DEPENDS roscpp rospy libmavconn
 #  DEPENDS system_lib
 )
 
@@ -117,14 +119,13 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-# include
+  include
   ${catkin_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/uwsim_joystick.cpp
-# )
+#   src/${PROJECT_NAME}/src/uwsim_sitl.cpp)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -134,7 +135,7 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-# add_executable(${PROJECT_NAME}_node src/uwsim_joystick_node.cpp)
+add_executable(${PROJECT_NAME} src/uwsim_sitl.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -147,9 +148,9 @@ include_directories(
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-# target_link_libraries(uwsim_joystick
-#   ${catkin_LIBRARIES}
-# )
+ target_link_libraries(${PROJECT_NAME}
+   ${catkin_LIBRARIES}
+ )
 
 #############
 ## Install ##
@@ -165,13 +166,18 @@ include_directories(
 #   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 # )
 
+## Mark executables and/or libraries for installation
+ install(TARGETS ${PROJECT_NAME}
+   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+ )
 
 ## Mark cpp header files for installation
-# install(DIRECTORY include/${PROJECT_NAME}/
-#   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-#   FILES_MATCHING PATTERN "*.h"
-#   PATTERN ".svn" EXCLUDE
-# )
+ install(DIRECTORY  launch/
+         DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
+         PATTERN ".svn" EXCLUDE
+ )
 
 ## Mark other files for installation (e.g. launch and bag files, etc.)
 # install(FILES
@@ -185,23 +191,10 @@ include_directories(
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_uwsim_joystick.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_uwsim_px4_sitl.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
-add_executable(uwsim_joystick src/uwsim_joystick.cpp)
-target_link_libraries(uwsim_joystick ${catkin_LIBRARIES})
-
-## Mark executables and/or libraries for installation
-install(TARGETS uwsim_joystick
-        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-        )
-
-install(DIRECTORY launch/
-        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
-        PATTERN ".svn" EXCLUDE)

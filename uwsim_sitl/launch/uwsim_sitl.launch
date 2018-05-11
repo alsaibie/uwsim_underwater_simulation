@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<launch>
+    <!-- uwsim Node -->
+    <include file="$(find underwater_vehicle_dynamics)/launch/uwsim_dolphin_dynamics.launch"/>
+    <!-- -->
+    <node pkg="uwsim_sitl" type="uwsim_sitl" name="uwsim_mavlink" output="screen"/>
+</launch>

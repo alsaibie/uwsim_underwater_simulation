@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<launch>
+    <!--IMU Node -->
+    <node pkg="uwsim_sensor" type="uwsim_sensor" name="uwsim_sensor" output="screen">
+        <rosparam file = "$(find uwsim_sensor)/config/uwsim_sensor.yaml" command="load" />
+    </node>
+</launch>
