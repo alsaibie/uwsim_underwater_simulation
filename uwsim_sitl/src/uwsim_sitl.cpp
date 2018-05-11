@@ -9,7 +9,10 @@ using namespace px4;
 Mavlink::Mavlink(std::string mavlink_fcu_url) :
         _nh(),
         _mixed_motor_cmd_ros_pub(_nh.advertise<std_msgs::Float64MultiArray>("/dolphin/thrusters_input", 1)),
-        _v_attitude_quaternion_ros_sub( _nh.subscribe("/dolphin/imu_dyn", 1, &Mavlink::VehicleAttitudeCallback, this))
+        _v_hil_sensor_ros_sub( _nh.subscribe("/dolphin/dynamics/hil_sensor", 1,
+                                                 &Mavlink::vehicle_hil_sensor_callback, this)),
+        _v_hil_quaternion_ros_sub(_nh.subscribe("/dolphin/dynamics/hil_quaternion", 1,
+                                                &Mavlink::vehicle_hil_quaternion_callback, this))
 
 {
     _mavconnlink = mavconn::MAVConnInterface::open_url(mavlink_fcu_url);
@@ -32,12 +35,11 @@ int main(int argc, char** argv)
                                  std::string("udp://localhost:14565@localhost:14560"));
     Mavlink m(mavlink_fcu_url);
 
-    ros::Rate r(200);
-    while(ros::ok()){
-        r.sleep();
-        ros::spinOnce();
-    }
-//    ros::spin();
+    ros::spin();
+//    while(ros::ok()){
+//        r.sleep();
+//        ros::spinOnce();
+//    }
     return 0;
 }
 
@@ -75,22 +77,45 @@ void Mavlink::handle_msg_actuator_output(const mavlink::mavlink_message_t *msg){
     _mixed_motor_cmd_ros_pub.publish(_outputmsg);
 }
 
-void Mavlink::VehicleAttitudeCallback(const sensor_msgs::Imu::ConstPtr& att_q){
+void Mavlink::vehicle_hil_sensor_callback(const uwsim_msgs::hil_sensor::ConstPtr &sen_msg){
 
-    mavlink::common::msg::ATTITUDE_QUATERNION mmsg;
+    mavlink::common::msg::HIL_SENSOR mmsg;
+
     /* Fill and send */
-    mmsg.q1 = (float)att_q->orientation.w;
-    mmsg.q1 = (float)att_q->orientation.x;
-    mmsg.q1 = (float)att_q->orientation.y;
-    mmsg.q1 = (float)att_q->orientation.z;
-
-    mmsg.rollspeed  = (float)att_q->angular_velocity.x;
-    mmsg.pitchspeed = (float)att_q->angular_velocity.y;
-    mmsg.yawspeed   = (float)att_q->angular_velocity.z;
+    mmsg.xacc = (float)sen_msg->acc.x;
+    mmsg.yacc = (float)sen_msg->acc.y;
+    mmsg.zacc = (float)sen_msg->acc.z;
+    mmsg.xgyro = (float)sen_msg->gyro.x;
+    mmsg.ygyro = (float)sen_msg->gyro.y;
+    mmsg.zgyro = (float)sen_msg->gyro.z;
+    mmsg.xmag = (float)sen_msg->mag.x;
+    mmsg.ymag = (float)sen_msg->mag.y;
+    mmsg.zmag = (float)sen_msg->mag.z;
+    mmsg.abs_pressure = (float)sen_msg->abs_pressure;
+    mmsg.temperature = (float)sen_msg->temperature;
 
     /* mavconn will pack a mavlink message with a defined id */
     _mavconnlink->send_message(mmsg);
 }
+
+void Mavlink::vehicle_hil_quaternion_callback(const uwsim_msgs::hil_quaternion::ConstPtr &att_msg){
+
+    mavlink::common::msg::ATTITUDE_QUATERNION mmsg;
+    /* Fill and send */
+    mmsg.q1 = (float)att_msg->orientation.w;
+    mmsg.q1 = (float)att_msg->orientation.x;
+    mmsg.q1 = (float)att_msg->orientation.y;
+    mmsg.q1 = (float)att_msg->orientation.z;
+
+    mmsg.rollspeed  = (float)att_msg->angular_velocity.x;
+    mmsg.pitchspeed = (float)att_msg->angular_velocity.y;
+    mmsg.yawspeed   = (float)att_msg->angular_velocity.z;
+
+    /* mavconn will pack a mavlink message with a defined id */
+    _mavconnlink->send_message(mmsg);
+
+}
+
 
 
 

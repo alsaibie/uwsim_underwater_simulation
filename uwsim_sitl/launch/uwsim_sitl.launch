@@ -5,5 +5,5 @@
     <!--uwsim sensor Node -->
     <include file="$(find uwsim_sensor)/launch/uwsim_sensor.launch"/>
     <!-- -->
-    <!--<node pkg="uwsim_sitl" type="uwsim_sitl" name="uwsim_mavlink" output="screen"/>-->
+    <node pkg="uwsim_sitl" type="uwsim_sitl" name="uwsim_mavlink" output="screen"/>
 </launch>

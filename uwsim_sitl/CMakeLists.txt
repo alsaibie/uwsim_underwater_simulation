@@ -7,14 +7,13 @@ add_compile_options(-std=c++11)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED COMPONENTS roscpp rospy nav_msgs geometry_msgs sensor_msgs tf tf_conversions libmavconn mavlink
-)
+find_package(catkin REQUIRED COMPONENTS roscpp rospy nav_msgs geometry_msgs sensor_msgs tf tf_conversions libmavconn mavlink)
 set(UWSIM_MSGS_PATH /home/alsaibie/UWSim/install_isolated/)
 find_package(uwsim_msgs PATHS ${UWSIM_MSGS_PATH})
 
 #find_package(libmavconn REQUIRED)
 #find_package(mavlink REQUIRED)
-set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/CMakeModules;{CMAKE_MODULE_PATH}")
+#set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/CMakeModules;{CMAKE_MODULE_PATH}")
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -106,7 +105,7 @@ set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/CMakeModules;{CMAKE_MODULE_PATH}")
 catkin_package(
   INCLUDE_DIRS include
 #  LIBRARIES uwsim_sitl
-  CATKIN_DEPENDS roscpp rospy libmavconn
+  CATKIN_DEPENDS roscpp rospy libmavconn uwsim_msgs
 #  DEPENDS system_lib
 )
 
@@ -119,6 +118,7 @@ catkin_package(
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
+  ${uwsim_msgs_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
@@ -133,7 +133,7 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-add_executable(${PROJECT_NAME} src/uwsim_sitl.cpp)
+add_executable(${PROJECT_NAME} include/uwsim_sitl/uwsim_sitl.hpp src/uwsim_sitl.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -146,9 +146,9 @@ add_executable(${PROJECT_NAME} src/uwsim_sitl.cpp)
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
- target_link_libraries(${PROJECT_NAME}
-   ${catkin_LIBRARIES}
- )
+target_link_libraries(${PROJECT_NAME}
+  ${catkin_LIBRARIES}
+)
 
 #############
 ## Install ##

@@ -9,23 +9,32 @@ Sensor::Sensor():
         _nh(),
         // TODO: abstract vehicle name in launch file
         _vehicle_name(std::string("dolphin")),
-        _v_full_state_ros_sub( _nh.subscribe("/dolphin/dynamics/full_state", 1, &Sensor::VehicleStateCallback, this)),
-        _v_power_ros_sub( _nh.subscribe("/dolphin/dynamics/power", 1, &Sensor::VehiclePowerCallback, this)),
+        _v_full_state_ros_sub( _nh.subscribe("/dolphin/dynamics/full_state", 1, &Sensor::vehicle_state_callback, this)),
+        _v_power_ros_sub( _nh.subscribe("/dolphin/dynamics/power", 1, &Sensor::vehicle_power_callback, this)),
         _v_hil_sensor_ros_pub(_nh.advertise<uwsim_msgs::hil_sensor>("/dolphin/dynamics/hil_sensor", 1)),
         _v_hil_quaternion_ros_pub(_nh.advertise<uwsim_msgs::hil_quaternion>("/dolphin/dynamics/hil_quaternion", 1)),
         _v_hil_battery_ros_pub(_nh.advertise<uwsim_msgs::hil_battery>("/dolphin/dynamics/hil_battery", 1))
 {
     /* Get Parameters */
     _nh.getParam("uwsim_sensor/hil_sensor_period", _hil_sensor_period_sec);
-
     _nh.getParam("uwsim_sensor/hil_quaternion_period", _hil_quaternion_period_sec);
     _nh.getParam("uwsim_sensor/hil_battery_period", _hil_battery_period_sec);
     _nh.getParam("uwsim_sensor/sensor/accelerometer_st", _sen_accelerometer_std);
     _nh.getParam("uwsim_sensor/sensor/gyro_std", _sen_gyro_std);
     _nh.getParam("uwsim_sensor/sensor/mag_std", _sen_mag_std);
+    _nh.getParam("uwsim_sensor/sensor/pressure_std", _sen_pressure_std);
+    _nh.getParam("uwsim_sensor/sensor/temp_std", _sen_temp_std);
+    _nh.getParam("uwsim_sensor/sensor/pressure_ref", _sen_pressure_ref);
+    _nh.getParam("uwsim_sensor/sensor/temp_ref", _sen_temp_ref);
     _nh.getParam("uwsim_sensor/att/quaternion_std", _att_quaternion_std);
     _nh.getParam("uwsim_sensor/att/omega_std", _att_omega_std);
     _nh.getParam("uwsim_sensor/att/acceleration_std", _att_acceleration_std);
+
+    _sen_acc_dist = std::normal_distribution<double>(0.0, _sen_accelerometer_std);
+    _sen_gyro_dist = std::normal_distribution<double>(0.0, _sen_gyro_std);
+    _sen_mag_dist = std::normal_distribution<double>(0.0, _sen_mag_std);
+    _sen_pressure_dist = std::normal_distribution<double>(0.0, _sen_pressure_std);
+    _sen_temp_dist = std::normal_distribution<double>(0.0, _sen_temp_std);
 
     start();
 }
@@ -73,13 +82,13 @@ void Sensor::start(void) {
     }
 }
 
-void Sensor::VehicleStateCallback(const uwsim_msgs::full_state::ConstPtr& state22_msg){
+void Sensor::vehicle_state_callback(const uwsim_msgs::full_state::ConstPtr &state22_msg){
     /* update msg handle */
     _state22 = *state22_msg;
 //    ROS_INFO("Got full state %f", _state22.p_q[4]);
 }
 
-void Sensor::VehiclePowerCallback(const uwsim_msgs::power::ConstPtr& power_msg){
+void Sensor::vehicle_power_callback(const uwsim_msgs::power::ConstPtr &power_msg){
     /* update msg handle */
     _power = *power_msg;
 }
@@ -87,6 +96,21 @@ void Sensor::VehiclePowerCallback(const uwsim_msgs::power::ConstPtr& power_msg){
 void Sensor::send_hil_sensor_msg(void){
     /* Fill _hil_sensor_msg and send */
     uwsim_msgs::hil_sensor msg;
+
+
+    /* Add Gaussian Noise */
+    msg.acc.x   += _sen_acc_dist(_rand_generator);
+    msg.acc.y   += _sen_acc_dist(_rand_generator);
+    msg.acc.z   += _sen_acc_dist(_rand_generator);
+    msg.gyro.x  += _sen_gyro_dist(_rand_generator);
+    msg.gyro.y  += _sen_gyro_dist(_rand_generator);
+    msg.gyro.z  += _sen_gyro_dist(_rand_generator);
+    msg.mag.x   += _sen_mag_dist(_rand_generator);
+    msg.mag.y   += _sen_mag_dist(_rand_generator);
+    msg.mag.z   += _sen_mag_dist(_rand_generator);
+    msg.abs_pressure   += _sen_pressure_dist(_rand_generator);
+    msg.temperature    += _sen_temp_dist(_rand_generator);
+
     _v_hil_sensor_ros_pub.publish(msg);
 }
 
@@ -99,7 +123,7 @@ void Sensor::send_hil_batt_msg(void){
     uwsim_msgs::hil_battery msg;
 
 
-    _v_hil_sensor_ros_pub.publish(msg);
+    _v_hil_battery_ros_pub.publish(msg);
 }
 
 

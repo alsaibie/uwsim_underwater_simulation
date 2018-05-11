@@ -9,7 +9,7 @@ add_compile_options(-std=c++11)
 ## is used, also find other catkin packages
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${MY_FLAGS}")
 
-find_package(catkin REQUIRED COMPONENTS roscpp rospy geometry_msgs sensor_msgs tf tf_conversions message_generation)
+find_package(catkin REQUIRED COMPONENTS roscpp rospy geometry_msgs sensor_msgs tf tf_conversions)
 ## A useful answer here: https://answers.ros.org/question/48133/whats-the-effect-of-find_packagecatkin-components/
 set(UWSIM_MSGS_PATH /home/alsaibie/UWSim/install_isolated/)
 find_package(uwsim_msgs PATHS ${UWSIM_MSGS_PATH})
