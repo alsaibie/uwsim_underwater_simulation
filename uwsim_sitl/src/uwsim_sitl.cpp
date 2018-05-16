@@ -36,23 +36,19 @@ int main(int argc, char** argv)
     Mavlink m(mavlink_fcu_url);
 
     ros::spin();
-//    while(ros::ok()){
-//        r.sleep();
-//        ros::spinOnce();
-//    }
+
     return 0;
 }
 
 
 void Mavlink::handle_msg(const mavlink::mavlink_message_t *mmsg, const mavconn::Framing framing)
 {
-    ROS_INFO("Gor message, id %i", mmsg->msgid);
+//    ROS_INFO("Got message, id %i", mmsg->msgid);
     switch (mmsg->msgid) {
         case mavlink::common::msg::HIL_ACTUATOR_CONTROLS::MSG_ID :
 
             handle_msg_actuator_output(mmsg);
             break;
-
 
         default:
             break;
@@ -68,7 +64,7 @@ void Mavlink::handle_msg_actuator_output(const mavlink::mavlink_message_t *msg){
     std_msgs::Float64MultiArray _outputmsg;
 
     _outputmsg.data.resize(4);
-    ROS_INFO("Got actuator control, id %f", _actuators.controls[0]);
+//    ROS_INFO("Got actuator control, id %f", _actuators.controls[0]);
     _outputmsg.data[0] = _actuators.controls[0] * 800 + 1100;
     _outputmsg.data[1] = _actuators.controls[1] * 800 + 1100;
     _outputmsg.data[2] = _actuators.controls[2] * 800 + 1100;
@@ -100,16 +96,20 @@ void Mavlink::vehicle_hil_sensor_callback(const uwsim_msgs::hil_sensor::ConstPtr
 
 void Mavlink::vehicle_hil_quaternion_callback(const uwsim_msgs::hil_quaternion::ConstPtr &att_msg){
 
-    mavlink::common::msg::ATTITUDE_QUATERNION mmsg;
+    /* Ground Truth */
+    mavlink::common::msg::HIL_STATE_QUATERNION mmsg;
+
     /* Fill and send */
-    mmsg.q1 = (float)att_msg->orientation.w;
-    mmsg.q1 = (float)att_msg->orientation.x;
-    mmsg.q1 = (float)att_msg->orientation.y;
-    mmsg.q1 = (float)att_msg->orientation.z;
+    mmsg.attitude_quaternion[0] = (float)att_msg->orientation.w;
+    mmsg.attitude_quaternion[1] = (float)att_msg->orientation.x;
+    mmsg.attitude_quaternion[2] = (float)att_msg->orientation.y;
+    mmsg.attitude_quaternion[3] = (float)att_msg->orientation.z;
 
     mmsg.rollspeed  = (float)att_msg->angular_velocity.x;
     mmsg.pitchspeed = (float)att_msg->angular_velocity.y;
     mmsg.yawspeed   = (float)att_msg->angular_velocity.z;
+
+//    mmsg.vx = (float)att_msg->;
 
     /* mavconn will pack a mavlink message with a defined id */
     _mavconnlink->send_message(mmsg);
