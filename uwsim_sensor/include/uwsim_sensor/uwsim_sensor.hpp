@@ -6,6 +6,7 @@
 
 #include "ros/ros.h"
 #include <random>
+#include <Eigen/Dense>
 /* ROS Messages */
 #include <uwsim_msgs/full_state.h>
 #include <uwsim_msgs/hil_sensor.h>
@@ -15,6 +16,9 @@
 
 namespace uwsim
 {
+    /* Rotation Operations */
+    using namespace Eigen;
+
     class Sensor
     {
     public:
@@ -46,9 +50,9 @@ namespace uwsim
         uwsim_msgs::power          _power;
 
         /* Outgoing */
-        void send_hil_sensor_msg(void);
-        void send_hil_quaternion_msg(void);
-        void send_hil_batt_msg(void);
+        void send_hil_sensor_msg(double dt);
+        void send_hil_quaternion_msg(double dt);
+        void send_hil_batt_msg(double dt);
 
         /* Parameter List */
         std::string _vehicle_name;
@@ -56,27 +60,46 @@ namespace uwsim
         double _hil_quaternion_period_sec;
         double _hil_battery_period_sec;
         float _sen_accelerometer_std;
+        float _sen_acc_bias_correlation_time;
+        float _sen_acc_noise_density;
+        float _sen_acc_random_walk;
+        float _sen_acc_turn_on_bias;
         float _sen_gyro_std;
+        float _sen_gyro_bias_correlation_time;
+        float _sen_gyro_noise_density;
+        float _sen_gyro_random_walk;
+        float _sen_gyro_turn_on_bias;
         float _sen_mag_std;
-        float _sen_pressure_std;
-        float _sen_temp_std;
+        float _sen_mag_inclination;
+        float _sen_mag_declination;
         float _sen_pressure_ref;
+        float _sen_pressure_std;
         float _sen_temp_ref;
+        float _sen_temp_std;
         float _att_quaternion_std;
         float _att_omega_std;
         float _att_acceleration_std;
+
+        /* rotation services */
+        Quaterniond q_magu; // Magnetic inclination-declination - expressed in NED frame u
 
         /* time services */
         double _last_hil_sensor_sec;
         double _last_hil_quaternion_sec;
         double _last_hil_battery_sec;
 
+        /* Signal deprocessing */
+        void acclerometer_real(Vector3d &acc, double dt);
+        void gyroscope_real(Vector3d &gyro, double dt);
+        void magnetometer_real(Vector3d &mag, double dt);
+
         /* stochastics */
         std::default_random_engine _rand_generator;
-        std::normal_distribution<double> _sen_acc_dist;
-        std::normal_distribution<double> _sen_gyro_dist;
-        std::normal_distribution<double> _sen_mag_dist;
-        std::normal_distribution<double> _sen_pressure_dist;
-        std::normal_distribution<double> _sen_temp_dist;
+        std::normal_distribution<float> _sen_acc_dist;
+        std::normal_distribution<float> _sen_gyro_dist;
+        std::normal_distribution<float> _sen_mag_dist;
+        std::normal_distribution<float> _sen_pressure_dist;
+        std::normal_distribution<float> _sen_temp_dist;
+
     };
 }

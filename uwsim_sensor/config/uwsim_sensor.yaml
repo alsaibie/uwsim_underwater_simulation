@@ -5,14 +5,16 @@ hil_battery_period: 0.1       # Publish battery at 10 Hz
 
 ## Sensor Properties
 sensor/accelerometer_std: 0.01
-sensor/gyro_std: 0.01
+sensor/gyro_std: 0.1
 sensor/mag_std: 0.01
 sensor/pressure_std: 0.01
 sensor/temp_std: 0.01
 sensor/pressure_ref: 1000 # mmH20
 sensor/temp_ref: 23.5 # C
+sensor/mag_declination: -5.17 # deg
+sensor/mag_inclination: 62.38 # deg
 
 ## Attitude Properties
-att/quaternion_std: 0.000000001    # Standard Deviation on euler Measurement
+att/quaternion_std: 0.0001    # Standard Deviation on euler Measurement
 att/omega_std: 0.002               # Standard Deviation on Angular Velocity Measurement
-att/acceleration_std: 0.01         # Standard deviation on Linear Acceleration
+att/acceleration_std: 0.001         # Standard deviation on Linear Acceleration
