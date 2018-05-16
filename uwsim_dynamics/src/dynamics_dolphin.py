@@ -370,7 +370,10 @@ class Dynamics:
         self.p_e[3:6] = tf.transformations.euler_from_quaternion(self.p_q[3:7], 'rxyz')
         # print("exp", expq)
 
-        self.state24_msg.p_q = self.p_q
+        # Correct Quaternion order TODO: Change from tf.transform
+        self.state24_msg.p_q[0:3] = self.p_q[0:3]
+        self.state24_msg.p_q[4:3] = self.p_q[3:3]
+        self.state24_msg.p_q[3] = self.p_q[6]
         self.state24_msg.p_lin_dot = q_dot_translation_q
 
         return self.p_e
@@ -385,10 +388,11 @@ class Dynamics:
         pose.position.y = self.p_e[1]
         pose.position.z = self.p_e[2]
 
-        pose.orientation.x = self.p_q[0]
-        pose.orientation.y = self.p_q[1]
-        pose.orientation.z = self.p_q[2]
-        pose.orientation.w = self.p_q[3]
+        # TODO: Fix quaternion order - I'm working with a mixed terminology here! I blame tf.transform.
+        pose.orientation.x = self.p_q[3]
+        pose.orientation.y = self.p_q[4]
+        pose.orientation.z = self.p_q[5]
+        pose.orientation.w = self.p_q[6]
 
         self.pub_pose.publish(pose)
 

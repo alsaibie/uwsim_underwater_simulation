@@ -3,7 +3,7 @@
 	   <arg name="namespace" value="dolphin" />
 	   <arg name="params" value="$(find uwsim_dynamics)/config/dynamics_dolphin.yaml" />
 	</include>
-	<rosparam param="/dolphin/dynamics/external_force_topic">dolphin/ForceSensor</rosparam>
+	<!--<rosparam param="/dolphin/dynamics/external_force_topic">dolphin/ForceSensor</rosparam>-->
 	<!--<arg name="thrusters_topic" default="/dolphin/thrusters_input" />-->
 </launch>
 

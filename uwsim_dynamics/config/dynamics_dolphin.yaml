@@ -72,5 +72,5 @@ dolphin/dynamics/frame_id: "/dolphin/shell"
 ### Initialization
 # Meters and Rads [X, Y, Z, Roll, Pitch, Yaw] TODO: Get it back from the other launch file
 # TODO: How do I incorporate the vehicle model into the simulation?
-dolphin/dynamics/initial_pose: [-1.0, 1.0, 4.0, 0.0, 3.14, 3.14] #[3.0, 1.1, 2.8, 0, 0, 3.14]
+dolphin/dynamics/initial_pose: [-1.0, 1.0, 4.0, 0, 0, 1.75] #[3.0, 1.1, 2.8, 0, 0, 3.14]
 dolphin/dynamics/initial_velocity: [0, 0, 0, 0, 0, 0]
