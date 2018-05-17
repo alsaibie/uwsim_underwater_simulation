@@ -132,7 +132,7 @@ class Dynamics:
         W = self.mass * self.g  # [Kg]
         # Assume the vehicle is always submerged
         r = self.radius
-        [q1, q2, q3, q4] = self.p_q[3:7] #TODO: change to qi qj qk qr
+        [q1, q2, q3, q4] = self.p_q[3:7] # TODO: change to qi qj qk qr
 
         #      or define common models and let the user choose one by the name
         #      Eventually let this part to bullet inside uwsim (HfFluid)
@@ -372,8 +372,8 @@ class Dynamics:
 
         # Correct Quaternion order TODO: Change from tf.transform
         self.state24_msg.p_q[0:3] = self.p_q[0:3]
-        self.state24_msg.p_q[4:3] = self.p_q[3:3]
-        self.state24_msg.p_q[3] = self.p_q[6]
+        self.state24_msg.p_q[4:7] = self.p_q[3:6] # x y z
+        self.state24_msg.p_q[3] = self.p_q[6] # w
         self.state24_msg.p_lin_dot = q_dot_translation_q
 
         return self.p_e
@@ -425,7 +425,8 @@ class Dynamics:
             self.dyn_bag.write('dynamics param', dynamics_msg)
 
     def pubIMU(self, event):
-        """ Generate Virtual IMU data, with noise and biases """
+        """ Generate Virtual IMU data, with noise and biases
+         TODO: REMOVE, it's redundant against uwsim_sensor """
         if self.invers_dyanmics_intialized is True:
             imu_msg = Imu()
             # Orientation w.r.t to world frame - p TODO: VERIFY
@@ -450,20 +451,7 @@ class Dynamics:
             imu_msg.angular_velocity_covariance[0] = imu_msg.angular_velocity_covariance[4] = \
                 imu_msg.angular_velocity_covariance[8] = pow(self.imu_w_std, 2)
 
-            # Linear Acceleration w.r.t world frame  - # TODO: Populate!
-            # a_noise = random.normal(0, self.imu_a_std, 3)
-            # imu_msg.linear_acceleration.x = ... + a_noise[0]
-            # imu_msg.linear_acceleration.y = ..  + a_noise[1]
-            # imu_msg.linear_acceleration.z = .. .+ a_noise[2]
-            # imu_msg.linear_acceleration_covariance[0] = imu_msg.linear_acceleration_covariance[4] = \
-            # imu_msg.linear_acceleration_covariance[8] = pow(self.imu_a_std, 2)
             self.pub_imu.publish(imu_msg)
-
-    def compute_tf(self, tf):
-        r = PyKDL.Rotation.RPY(math.radians(tf[3]), math.radians(tf[4]), math.radians(tf[5]))
-        v = PyKDL.Vector(tf[0], tf[1], tf[2])
-        frame = PyKDL.Frame(r, v)
-        return frame
 
     def reset(self, req):
         self.v = self.v_0
