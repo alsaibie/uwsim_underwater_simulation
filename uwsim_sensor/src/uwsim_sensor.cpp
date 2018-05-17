@@ -19,23 +19,25 @@ Sensor::Sensor():
     _nh.getParam("uwsim_sensor/hil_sensor_period", _hil_sensor_period_sec);
     _nh.getParam("uwsim_sensor/hil_quaternion_period", _hil_quaternion_period_sec);
     _nh.getParam("uwsim_sensor/hil_battery_period", _hil_battery_period_sec);
+
     _nh.getParam("uwsim_sensor/sensor/accelerometer_std", _sen_accelerometer_std);
-    _nh.getParam("uwsim_sensor/sensor/accelerometer_bias_correlation_time", _sen_acc_bias_correlation_time);
+    _nh.getParam("uwsim_sensor/sensor/accelerometer_bias_diffusion", _sen_acc_bias_diffusion);
     _nh.getParam("uwsim_sensor/sensor/accelerometer_noise_density", _sen_acc_noise_density);
-    _nh.getParam("uwsim_sensor/sensor/accelerometer_random_walk", _sen_acc_random_walk);
-    _nh.getParam("uwsim_sensor/sensor/accelerometer_turn_on_bias", _sen_acc_turn_on_bias);
+
     _nh.getParam("uwsim_sensor/sensor/gyro_std", _sen_gyro_std);
-    _nh.getParam("uwsim_sensor/sensor/gyro_bias_correlation_time", _sen_gyro_bias_correlation_time);
     _nh.getParam("uwsim_sensor/sensor/gyro_noise_density", _sen_gyro_noise_density);
-    _nh.getParam("uwsim_sensor/sensor/gyro_random_walk", _sen_gyro_random_walk);
-    _nh.getParam("uwsim_sensor/sensor/gyro_turn_on_bias", _sen_gyro_turn_on_bias);
+    _nh.getParam("uwsim_sensor/sensor/gyro_bias_diffusion", _sen_gyro_bias_diffusion);
+
     _nh.getParam("uwsim_sensor/sensor/mag_std", _sen_mag_std);
     _nh.getParam("uwsim_sensor/sensor/mag_inclination", _sen_mag_inclination);
     _nh.getParam("uwsim_sensor/sensor/mag_declination", _sen_mag_declination);
+
     _nh.getParam("uwsim_sensor/sensor/pressure_ref", _sen_pressure_ref);
     _nh.getParam("uwsim_sensor/sensor/pressure_std", _sen_pressure_std);
+
     _nh.getParam("uwsim_sensor/sensor/temp_ref", _sen_temp_ref);
     _nh.getParam("uwsim_sensor/sensor/temp_std", _sen_temp_std);
+
     _nh.getParam("uwsim_sensor/att/quaternion_std", _att_quaternion_std);
     _nh.getParam("uwsim_sensor/att/omega_std", _att_omega_std);
     _nh.getParam("uwsim_sensor/att/acceleration_std", _att_acceleration_std);
@@ -48,9 +50,10 @@ Sensor::Sensor():
     _sen_pressure_dist = std::normal_distribution<float>(0.0, _sen_pressure_std);
     _sen_temp_dist = std::normal_distribution<float>(0.0, _sen_temp_std);
 
-    /* Get Magnetic Declination/Inclination Vector q = R(Yaw:Declination)*R(Pitch:Inclination) */
-    q_magu = AngleAxisd(_sen_mag_declination * M_PI / 180.0, Vector3d::UnitZ()) * AngleAxisd(- _sen_mag_inclination * M_PI / 180.0, Vector3d::UnitY());
-
+    /* Store Magnetic Declination/Inclination Vector q = R(Yaw:Declination)*R(Pitch:Inclination) */
+    qmag_fu = Euler2Quaterniond(Vector3d(0.0, _sen_mag_inclination * M_PI / 180.0,
+                                         _sen_mag_declination * M_PI / 180.0)).inverse();
+    qmag_fu.normalize();
     start();
 }
 
@@ -64,7 +67,7 @@ int main(int argc, char** argv)
 
     return 0;
 }
-void Sensor::start(void) {
+void Sensor::start() {
 
     ros::Rate r(400); /* Run at 400 Hz and down sample */
     ros::Time begin = ros::Time::now();
@@ -75,7 +78,7 @@ void Sensor::start(void) {
 
     while(ros::ok()){
         /* Send messages at requested sample rates */
-        double time_now = (ros::Time::now() - begin).toSec();
+        time_now = (ros::Time::now() - begin).toSec();
 
         double hil_sensor_dt_sec = time_now - _last_hil_sensor_sec;
         if (hil_sensor_dt_sec != 0 && hil_sensor_dt_sec > _hil_sensor_period_sec){
@@ -128,16 +131,16 @@ void Sensor::send_hil_sensor_msg(double dt){
     Vector3d acc_d(full_state.v_dot[0],full_state.v_dot[1], full_state.v_dot[2]);
 
     /* Add g - rotated into d frame */
-    Quaterniond g_u; g_u.w() = 0.0; g_u.vec() = Vector3d(0,0,9.81);
+    Quaterniond g_u = QuaternionVectord( Vector3d(0,0,9.81));
     acc_d += (q_orientation_du.inverse() * g_u * q_orientation_du).vec();
 
     /* Rotate Linear Acceleration to m frame */
     Quaterniond q_dm(0, 1, 0, 0);
-    Quaterniond qacc_d; qacc_d.w() = 0; qacc_d.vec() = acc_d;
+    Quaterniond qacc_d = QuaternionVectord(acc_d);
     Vector3d acc_m = (q_dm * qacc_d * q_dm.inverse()).vec();
 
     /* Make real */
-    acclerometer_real(acc_d, dt);
+    acclerometer_real(acc_m, dt);
 
     /*
      * GYROSCOPE
@@ -145,21 +148,22 @@ void Sensor::send_hil_sensor_msg(double dt){
     Vector3d gyro_d(full_state.v[3], full_state.v[4], full_state.v[5]);
 
     /* Bring to m frame */
-    Quaterniond qgyro_d; qgyro_d.w() = 0; qgyro_d.vec() = gyro_d;
+    Quaterniond qgyro_d = QuaternionVectord(gyro_d);
     Vector3d gyro_m = (q_dm * qgyro_d * q_dm.inverse()).vec();
 
-    gyroscope_real(gyro_d, dt);
+    gyroscope_real(gyro_m, dt);
 
     /*
-     * MAGNETOMETER
+     * MAGNETOMETER TODO: STILL NEEDS WORK.
      */
 
-    /* Compensate for magnetic inclination/declination */
-    Quaterniond qmag; qmag.w() = 0; qmag.vec() = Vector3d(1, 0, 0);
-    Quaterniond qmag_u  = q_magu * qmag * q_magu.inverse();
+    /* Compensate true magnetic inclination/declination */
+    Quaterniond qnorth = QuaternionVectord(Vector3d(1, 0, 0));
+    Vector3d mag_u  = (qmag_fu * qnorth * qmag_fu.inverse()).vec();
 
-    /* Bring to body frame d then to m frame */
-    Vector3d mag_m =  (q_dm * (q_orientation_du.inverse() * qmag_u * q_orientation_du) * q_dm.inverse()).vec();
+    /* Bring to body d frame */
+    Quaterniond qmag_u = QuaternionVectord(mag_u);
+    Vector3d mag_m =  (q_orientation_du.inverse() * qmag_u * q_orientation_du).vec();
 
     magnetometer_real(mag_m, dt);
 
@@ -214,18 +218,19 @@ void Sensor::send_hil_batt_msg(double dt){
     _v_hil_battery_ros_pub.publish(msg);
 }
 
+/** For acc and gyro sing noise model suggested in here:
+ * https://github.com/ethz-asl/kalibr/wiki/IMU-Noise-Model
+ * where acc_hat = acc + b[k] + n[k]
+ * the bias term b[k] = b[k-1] + sigma_b * w[k] * sqrt(dt)
+ * and n[k] = sigma * w[k] / sqrt(dt)
+ * **/
 
 void Sensor::acclerometer_real(Vector3d &acc, double dt) {
 
     static double bias = 0;
     for (uint8_t k = 0; k < 3; k++){
-        double sig_1 = sqrt(-_sen_acc_random_walk * _sen_acc_random_walk * _sen_acc_bias_correlation_time / 2.0 *
-                            exp(-2.0 * dt / _sen_acc_bias_correlation_time));
-        double sig_2 = 1 / sqrt(dt) * _sen_acc_noise_density;
-        double sig_3 = _sen_acc_turn_on_bias;
-        double phi   = exp(-dt / _sen_acc_bias_correlation_time);
-        bias = phi * bias + sig_1 * _sen_acc_dist(_rand_generator);
-        acc[k] +=(float)(bias + sig_2 * _sen_acc_dist(_rand_generator) + sig_3 * _sen_acc_dist(_rand_generator));
+        bias = bias + _sen_acc_bias_diffusion * _sen_acc_dist(_rand_generator) * sqrt(dt);
+        acc[k] +=(float)(bias + _sen_acc_noise_density * _sen_acc_dist(_rand_generator) / sqrt(dt));
     }
 }
 
@@ -233,25 +238,38 @@ void Sensor::gyroscope_real(Vector3d &gyro, double dt) {
 
     static double bias = 0;
     for (uint8_t k = 0; k < 3; k++){
-        double sig_1 = sqrt(-_sen_gyro_random_walk * _sen_gyro_random_walk * _sen_gyro_bias_correlation_time / 2.0 *
-                            exp(-2.0 * dt / _sen_gyro_bias_correlation_time));
-        double sig_2 = 1 / sqrt(dt) * _sen_gyro_noise_density;
-        double sig_3 = _sen_gyro_turn_on_bias;
-        double phi   = exp(-dt / _sen_gyro_bias_correlation_time);
-        bias = phi * bias + sig_1 * _sen_gyro_dist(_rand_generator);
-        gyro[k] +=(float)(bias + sig_2 * _sen_gyro_dist(_rand_generator) + sig_3 * _sen_gyro_dist(_rand_generator));
+        bias = bias + _sen_gyro_bias_diffusion * _sen_gyro_dist(_rand_generator) * sqrt(dt);
+        gyro[k] +=(float)(bias + _sen_gyro_noise_density * _sen_gyro_dist(_rand_generator) / sqrt(dt));
     }
 }
 
 void Sensor::magnetometer_real(Vector3d &mag, double dt) {
 
-
-    mag[0]   += _sen_mag_dist(_rand_generator);
-    mag[1]   += _sen_mag_dist(_rand_generator);
-    mag[2]   += _sen_mag_dist(_rand_generator);
-
+    /** Add Gaussian noise  **/
+    for (uint8_t k = 0; k < 3; k++){
+        mag[k]   += _sen_mag_dist(_rand_generator);
+    }
 }
 
 
+Quaterniond Sensor::Euler2Quaterniond(const Vector3d v)
+{
+    // TODO: Why is the order unintuitive and doesn't corresponde to R = Ryaw*Rpitch*Rroll?
+    // Does Eigen flip the quaternion operator?
+    return AngleAxisd(v[0], Eigen::Vector3d::UnitX()) *
+           AngleAxisd(v[1], Eigen::Vector3d::UnitY()) *
+           AngleAxisd(v[2], Eigen::Vector3d::UnitZ());
+}
+
+Vector3d Sensor::Quaternion2eulerd(const Quaterniond q)
+{
+    return q.toRotationMatrix().eulerAngles(0, 1, 2);
+}
+
+Quaterniond Sensor::QuaternionVectord(const Vector3d v)
+{
+    Quaterniond q; q.w() = 0; q.vec() = v;
+    return q;
+}
 
 

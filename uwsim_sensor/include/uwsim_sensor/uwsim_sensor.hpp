@@ -60,15 +60,11 @@ namespace uwsim
         double _hil_quaternion_period_sec;
         double _hil_battery_period_sec;
         float _sen_accelerometer_std;
-        float _sen_acc_bias_correlation_time;
         float _sen_acc_noise_density;
-        float _sen_acc_random_walk;
-        float _sen_acc_turn_on_bias;
+        float _sen_acc_bias_diffusion;
         float _sen_gyro_std;
-        float _sen_gyro_bias_correlation_time;
         float _sen_gyro_noise_density;
-        float _sen_gyro_random_walk;
-        float _sen_gyro_turn_on_bias;
+        float _sen_gyro_bias_diffusion;
         float _sen_mag_std;
         float _sen_mag_inclination;
         float _sen_mag_declination;
@@ -81,7 +77,10 @@ namespace uwsim
         float _att_acceleration_std;
 
         /* rotation services */
-        Quaterniond q_magu; // Magnetic inclination-declination - expressed in NED frame u
+        Quaterniond qmag_fu; // Magnetic inclination-declination - expressed in NED frame u
+        Quaterniond Euler2Quaterniond(const Vector3d v);
+        Vector3d Quaternion2eulerd(const Quaterniond q);
+        Quaterniond QuaternionVectord(const Vector3d v);
 
         /* time services */
         double _last_hil_sensor_sec;
@@ -100,6 +99,5 @@ namespace uwsim
         std::normal_distribution<float> _sen_mag_dist;
         std::normal_distribution<float> _sen_pressure_dist;
         std::normal_distribution<float> _sen_temp_dist;
-
     };
 }
