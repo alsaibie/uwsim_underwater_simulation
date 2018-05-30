@@ -2,6 +2,7 @@
 <launch>
     <!-- uwsim Dolphin Node -->
     <include file="$(find uwsim_dynamics)/launch/uwsim_dolphin_dynamics_noosg.launch"/>
+    <!--<include file="$(find uwsim_dynamics)/launch/uwsim_dolphin_dynamics.launch"/>-->
     <!--uwsim sensor Node -->
     <include file="$(find uwsim_sensor)/launch/uwsim_sensor.launch"/>
     <!-- -->

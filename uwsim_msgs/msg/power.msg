@@ -1,6 +1,6 @@
 # Power Message
 std_msgs/Header header
-float32 mAh
-float32 V
-float32 I
+float64 percent_remaining
+float64 V
+float64 I
 

@@ -118,6 +118,7 @@ catkin_package(
 ## Your package locations should be listed before other locations
 include_directories(
   include
+  ../dynamics_stack/
   ${catkin_INCLUDE_DIRS}
   ${uwsim_msgs_INCLUDE_DIRS}
   ${Eigen_INCLUDE_DIRS}
@@ -135,7 +136,8 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-add_executable(${PROJECT_NAME} include/uwsim_sensor/uwsim_sensor.hpp src/uwsim_sensor.cpp)
+add_executable(${PROJECT_NAME} include/uwsim_sensor/uwsim_sensor.hpp ../dynamics_stack/Sensor.hpp
+        src/uwsim_sensor.cpp ../dynamics_stack/Sensor.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the

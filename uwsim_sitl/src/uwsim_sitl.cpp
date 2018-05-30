@@ -4,6 +4,9 @@
 #include <functional>
 #include "uwsim_sitl/uwsim_sitl.hpp"
 
+#define PWM_DEFAULT_MIN 1000
+#define PWM_DEFAULT_MAX 2000
+
 using namespace px4;
 
 Mavlink::Mavlink(std::string mavlink_fcu_url) :
@@ -58,18 +61,19 @@ void Mavlink::handle_msg(const mavlink::mavlink_message_t *mmsg, const mavconn::
 void Mavlink::handle_msg_actuator_output(const mavlink::mavlink_message_t *msg){
 
     mavlink::MsgMap _map(msg);
-    mavlink::common::msg::ACTUATOR_CONTROL_TARGET _actuators;
+    mavlink::common::msg::HIL_ACTUATOR_CONTROLS _actuators;
     _actuators.deserialize(_map);
 
     std_msgs::Float64MultiArray _outputmsg;
 
     _outputmsg.data.resize(4);
-//    ROS_INFO("Got actuator control, id %f", _actuators.controls[0]);
-    _outputmsg.data[0] = _actuators.controls[0] * 800 + 1100;
-    _outputmsg.data[1] = _actuators.controls[1] * 800 + 1100;
-    _outputmsg.data[2] = _actuators.controls[2] * 800 + 1100;
-    _outputmsg.data[3] = _actuators.controls[3] * 800 + 1100;
 
+    _outputmsg.data[0] = _actuators.controls[0] * (PWM_DEFAULT_MAX - PWM_DEFAULT_MIN) + PWM_DEFAULT_MIN;
+    _outputmsg.data[1] = _actuators.controls[1] * (PWM_DEFAULT_MAX - PWM_DEFAULT_MIN) + PWM_DEFAULT_MIN;
+    _outputmsg.data[2] = _actuators.controls[2] * (PWM_DEFAULT_MAX - PWM_DEFAULT_MIN) + PWM_DEFAULT_MIN;
+    _outputmsg.data[3] = _actuators.controls[3] * (PWM_DEFAULT_MAX - PWM_DEFAULT_MIN) + PWM_DEFAULT_MIN;
+    ROS_INFO("output msg %f, %f, %f, %f", (double)_outputmsg.data[0], (double)_outputmsg.data[1], (double)_outputmsg.data[2],
+            (double)_outputmsg.data[3]);
     _mixed_motor_cmd_ros_pub.publish(_outputmsg);
 }
 
@@ -88,8 +92,10 @@ void Mavlink::vehicle_hil_sensor_callback(const uwsim_msgs::hil_sensor::ConstPtr
     mmsg.ymag = (float)sen_msg->mag.y;
     mmsg.zmag = (float)sen_msg->mag.z;
     mmsg.abs_pressure = (float)sen_msg->abs_pressure;
+    mmsg.diff_pressure = (float)sen_msg->diff_pressure;
+    mmsg.pressure_alt = (float)sen_msg->pressure_alt;
     mmsg.temperature = (float)sen_msg->temperature;
-
+//    mmsg.time_usec = (float)sen_msg->h
     /* mavconn will pack a mavlink message with a defined id */
     _mavconnlink->send_message(mmsg);
 }
@@ -112,7 +118,7 @@ void Mavlink::vehicle_hil_quaternion_callback(const uwsim_msgs::hil_quaternion::
 //    mmsg.vx = (float)att_msg->;
 
     /* mavconn will pack a mavlink message with a defined id */
-    _mavconnlink->send_message(mmsg);
+//    _mavconnlink->send_message(mmsg);
 
 }
 
