@@ -3,12 +3,6 @@
 dolphin/dynamics/diffq_period: 0.0005 # Dynamic Simulation integration timestep
 dolphin/dynamics/uwsim_period: 0.005 # Publish rate set at 200 Hz
 
-### Simulated IMU Properties
-dolphin/imu/period: 0.0025                # Publish rate set at 400 Hz
-dolphin/imu/quaternion_std: 0.000000001        # Standard Deviation on euler Measurement
-dolphin/imu/omega_std: 0.002               # Standard Deviation on Angular Velocity Measurement
-dolphin/imu/acceleration_std: 0.01         # Standard deviation on Linear Acceleration
-
 ### Inertia Properties
 dolphin/dynamics/mass: 0.25
 dolphin/dynamics/gravity_center: [0.0, 0.0, -0.002] # TODO: fix, should be w.r.t. to rB
@@ -17,7 +11,7 @@ dolphin/dynamics/g: 9.81
 dolphin/dynamics/radius: [.05, .06, .07]
 #dolphin/dynamics/tensor: [0.000000001, 0.0,0.0 , -1e-11, 0.0, 0.0, 0.0, 0.000000001, 0.0]
 # Tensor values based on Solidworks values Lxx etc
-dolphin/dynamics/tensor: [[410461e-9, 431e-9, -11631e-9], [431e-9, 338994e-9, -15e-9], [-11631e-9, -15e-9, 546986e-9]]
+dolphin/dynamics/tensor: [410461.0E-9, 431.0E-9, -11631.0E-9, 431.0E-9, 338994.0E-9, -15.0E-9, -11631.0E-9, -15.0E-9, 546986.0E-9]
 
 ### Damping Properties
 dolphin/dynamics/damping: [-.02, .09, -.3, -0.0007, -0.0007, -0.0021]  # x1000
@@ -40,9 +34,9 @@ dolphin/dynamics/actuators_radius: .03
 #Actuator time constant for first order actuator dynamic model:
 dolphin/dynamics/actuators_tconst: .01
 #Inputs higher than actuators_maxsat will saturate to actuators_maxsat
-dolphin/dynamics/actuators_maxsat: [1, 1, 1, 1]
+dolphin/dynamics/actuators_maxsat: 1
 #Inputs below actuators_minsat will saturate to actuators_minsat
-dolphin/dynamics/actuators_minsat: [-1, -1,  -1, -1]
+dolphin/dynamics/actuators_minsat: -1
 # Actuator Direction Inversion
 dolphin/dynamics/actuators_inversion: [1, 1,  -1, -1]
 # PWM Range [Min, Mid, Max]
@@ -72,5 +66,5 @@ dolphin/dynamics/frame_id: "/dolphin/shell"
 ### Initialization
 # Meters and Rads [X, Y, Z, Roll, Pitch, Yaw] TODO: Get it back from the other launch file
 # TODO: How do I incorporate the vehicle model into the simulation?
-dolphin/dynamics/initial_pose: [-1.0, 1.0, 4.0, 0, 0, 1.75] #[3.0, 1.1, 2.8, 0, 0, 3.14]
+dolphin/dynamics/initial_pose: [-1.0, 1.0, 4.0, 0, 0, 0] #[3.0, 1.1, 2.8, 0, 0, 3.14]
 dolphin/dynamics/initial_velocity: [0, 0, 0, 0, 0, 0]

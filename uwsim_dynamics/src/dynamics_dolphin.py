@@ -9,12 +9,9 @@ import PyKDL
 import sys
 import rosbag
 from scipy import linalg
-# import msgs
 from std_msgs.msg import Float64MultiArray
 from geometry_msgs.msg import Pose
-from geometry_msgs.msg import Quaternion
 from geometry_msgs.msg import WrenchStamped
-from sensor_msgs.msg import Imu
 from uwsim_msgs.msg import dynamics_param
 from uwsim_msgs.msg import full_state
 
@@ -28,16 +25,11 @@ class Dynamics:
     # Utility Functions
     def s(self, x):
         """ Given a 3D vector computes the 3x3 antisymetric matrix (The cross product) """
-        # rospy.loginfo("s(): \n %s", x)
         return array([[0.0, -x[2], x[1]], [x[2], 0.0, -x[0]], [-x[1], x[0], 0.0]])
 
     def integral(self, x_dot, x, t):
         """ Computes the integral of x dt """
-        # print("shepes of xdot t and x", shape(x_dot), shape(t), shape(asarray(x)))
-        # print("return shape", shape(multiply(x_dot, t) + array(x).T))
         integral = multiply(x_dot, t) + array(x).T
-        # Prevent integral wind up #TODO: Check implementation, do rotational values need a different threshold?
-        #integral[abs(integral) < 0.01] = 0.0
         return integral
 
     def mass_matrix(self):
@@ -60,6 +52,7 @@ class Dynamics:
         print("Sizes of m_br, m_zeros, m_tl", shape(m_br), shape(m_zeros), shape(m_tl))
         MRB = vstack((hstack((m_tl, m_zeros)), hstack((m_zeros, m_br))))
         set_printoptions(linewidth=160)
+
         # compute the added mass matrix for a spheroid
         # semi axes of the ellipsoid as prolate spheroid with a along x [m]
         # x^2/a^2 + y^2/b^2 + z^2/c^2 = 1
@@ -132,10 +125,10 @@ class Dynamics:
         W = self.mass * self.g  # [Kg]
         # Assume the vehicle is always submerged
         r = self.radius
-        [q1, q2, q3, q4] = self.p_q[3:7] # TODO: change to qi qj qk qr
+        [qx, qy, qz, qw] = self.p_q[3:7] # TODO: change to qi qj qk qr
 
-        #      or define common models and let the user choose one by the name
-        #      Eventually let this part to bullet inside uwsim (HfFluid)
+        # or define common models and let the user choose one by the name
+        # Eventually let this part to bullet inside uwsim (HfFluid)
         # TODO: Incorporate the displaced water volume in here to compute B, for now assume neutral buoyancy
         # B = ((4 * math.pi * r[0] * r[1] * r[2]) / 3) * self.density * self.g
         B = W
@@ -148,17 +141,18 @@ class Dynamics:
         yb = self.rB[1]
         zb = self.rB[2]
 
-        q1_2 = power(q1, 2)
-        q2_2 = power(q2, 2)
-        q3_2 = power(q3, 2)
-        q4_2 = power(q4, 2)
-        q1q3 = q1 * q3
-        q2q3 = q2 * q3
-        q4q1 = q4 * q1
-        q4q2 = q4 * q2
-        term1 = (q4q2 - q1q3)
-        term2 = (q4q1 + q2q3)
-        term3 = (-q4_2 + q1_2 + q2_2 - q3_2)
+        qw_2 = power(qw, 2)
+        qx_2 = power(qx, 2)
+        qy_2 = power(qy, 2)
+        qz_2 = power(qz, 2)
+        qxqz = qx * qz
+        qyqz = qy * qz
+        qwqx = qw * qx
+        qwqy = qw * qy
+        term1 = (qwqy - qxqz)
+        term2 = (qwqx + qyqz)
+        term3 = (-qw_2 + qx_2 + qy_2 - qz_2)
+
         g = array([
             - 2 * term1 * (W - B),
             2 * term2 * (W - B),
@@ -240,8 +234,8 @@ class Dynamics:
         """ Computes the generalized force as B*Tn, and Tn = [T(u) Torque(u)] being B the allocation matrix,
         u the control input
         Return a 6x1 matrix"""
-        # Compute the Torque/Thrust Array - an 8x1 array
 
+        # Compute the Torque/Thrust Array - an 8x1 array
         T_n = hstack((self.thrust_n(w_hz_tr), self.torque_n(w_hz_tr)))  # 2nx1
         # Apply the thruster allocation matrix B to compute tau  - a 6x1 array
         return self.B.dot(T_n)
@@ -282,14 +276,9 @@ class Dynamics:
         self.w_hz_tr = self.motors_transient_dynamics(self.w_hz_sp)  # Apply First Order Delay
         self.tau_ = self.generalized_force(self.w_hz_tr)  # Apply thruster dynamics and allocation matrix
         self.c_v_ = dot(self.c_ + self.d_, self.v).T
-        # self.c_v_ = dot(self.d_, self.v).T
         # v_dot = dot(self.invM, (self.tau_ - c_v - self.g_ + self.collision_force))  # inv(M)*(tau-c_v-g+collisionForce)
-        # print("Shape invM", shape(self.invM))
-        # print("Shape tau", shape(self.tau_))
-        # print("Shape c_v_", shape(self.c_v_))
-        # print("Shape g_", shape(self.g_))
+
         v_dot = dot(self.invM, (self.tau_ + self.c_v_ + self.g_).T) # inv(M)*(tau-c_v-g+collisionForce)
-        # v_dot = dot(self.invM, (self.tau_ + self.c_v_).T) # inv(M)*(tau-c_v-g+collisionForce)
 
         self.v_dot = asarray(v_dot)  # Transforms a matrix into an array
         # self.collision_force = [0, 0, 0, 0, 0, 0]   # TODO: Fix. Why is this zeroed here?
@@ -370,10 +359,11 @@ class Dynamics:
         self.p_e[3:6] = tf.transformations.euler_from_quaternion(self.p_q[3:7], 'rxyz')
         # print("exp", expq)
 
-        # Correct Quaternion order TODO: Change from tf.transform
+
+        # Correct Quaternion order for export
         self.state24_msg.p_q[0:3] = self.p_q[0:3]
-        self.state24_msg.p_q[4:7] = self.p_q[3:6] # x y z
-        self.state24_msg.p_q[3] = self.p_q[6] # w
+        self.state24_msg.p_q[4:7] = self.p_q[3:6] # qx qy qz
+        self.state24_msg.p_q[3] = self.p_q[6] # qw
         self.state24_msg.p_lin_dot = q_dot_translation_q
 
         return self.p_e
@@ -403,7 +393,6 @@ class Dynamics:
 
         if self.invers_dyanmics_intialized is True:
             dynamics_msg = dynamics_param()
-            # dynamics_msg.mass_matrix = squeeze(self.M.flatten('C')).tolist()
             dynamics_msg.mass_matrix = self.M.astype(float).flatten().tolist()
             dynamics_msg.damping_matrix = self.d_.astype(float).flatten().tolist()
             dynamics_msg.coriolis_matrix = self.c_.astype(float).flatten().tolist()
@@ -424,34 +413,6 @@ class Dynamics:
 
             self.dyn_bag.write('dynamics param', dynamics_msg)
 
-    def pubIMU(self, event):
-        """ Generate Virtual IMU data, with noise and biases
-         TODO: REMOVE, it's redundant against uwsim_sensor """
-        if self.invers_dyanmics_intialized is True:
-            imu_msg = Imu()
-            # Orientation w.r.t to world frame - p TODO: VERIFY
-            euler_noise = random.normal(0, self.imu_q_std, 3)
-            p_w_noise = self.p_e[3:6] + euler_noise
-
-            quaternion = tf.transformations.quaternion_from_euler(p_w_noise[0], p_w_noise[1], p_w_noise[2])
-
-            imu_msg.orientation.x = quaternion[0]
-            imu_msg.orientation.y = quaternion[1]
-            imu_msg.orientation.z = quaternion[2]
-            imu_msg.orientation.w = quaternion[3]
-            # rospy.loginfo("Pwnoise %s", imu_msg.orientation)
-            imu_msg.orientation_covariance[0] = imu_msg.orientation_covariance[4] = \
-                imu_msg.orientation_covariance[8] = pow(self.imu_q_std, 2)
-
-            # Angular Velocity w.r.t body frame - v
-            w_noise = random.normal(0, self.imu_w_std, 3)
-            imu_msg.angular_velocity.x = self.v[3] + w_noise[0]
-            imu_msg.angular_velocity.y = -self.v[4] + w_noise[1]
-            imu_msg.angular_velocity.z = self.v[5] + w_noise[2]
-            imu_msg.angular_velocity_covariance[0] = imu_msg.angular_velocity_covariance[4] = \
-                imu_msg.angular_velocity_covariance[8] = pow(self.imu_w_std, 2)
-
-            self.pub_imu.publish(imu_msg)
 
     def reset(self, req):
         self.v = self.v_0
@@ -478,13 +439,6 @@ class Dynamics:
         # time properties
         self.diffq_period = rospy.get_param(self.vehicle_name + "/dynamics" + "/diffq_period")
         self.uwsim_period = rospy.get_param(self.vehicle_name + "/dynamics" + "/uwsim_period")
-
-        # IMU Properties
-        self.output_imu_topic = self.vehicle_name + "/imu_dyn"
-        self.imu_period = rospy.get_param(self.vehicle_name + "/imu" + "/period")
-        self.imu_q_std = rospy.get_param(self.vehicle_name + "/imu" + "/quaternion_std")
-        self.imu_w_std = rospy.get_param(self.vehicle_name + "/imu" + "/omega_std")
-        self.imu_a_std = rospy.get_param(self.vehicle_name + "/imu" + "/acceleration_std")
 
         # Inertia Properties
         self.mass = rospy.get_param(self.vehicle_name + "/dynamics" + "/mass")
@@ -560,7 +514,6 @@ class Dynamics:
         self.state24_msg = full_state()
         #   Create publisher
         self.pub_pose = rospy.Publisher(self.output_topic, Pose, queue_size=10)
-        self.pub_imu = rospy.Publisher(self.output_imu_topic, Imu, queue_size=10)
         self.pub_dyn_param = rospy.Publisher("/dolphin/dynamics/dynamics_parammmm", dynamics_param, queue_size=10)
         self.pub_state24 = rospy.Publisher("/dolphin/dynamics/full_state", full_state, queue_size=10)
         rospy.init_node("dynamics_" + self.vehicle_name, log_level=rospy.DEBUG)
@@ -616,8 +569,6 @@ class Dynamics:
         rospy.logdebug("Thruster Matrix B: \n %s", self.B)
         # Publish pose to UWSim at a set period rate - 200Hz?
         rospy.Timer(rospy.Duration(self.uwsim_period), self.pubPose)
-        # Publish IMU at 400 Hz
-        rospy.Timer(rospy.Duration(self.imu_period), self.pubIMU)
         # TODO: Check if time sample is done correctly
         #   Create Subscribers for thrusters and collisions
         # TODO: set the topic names as parameters

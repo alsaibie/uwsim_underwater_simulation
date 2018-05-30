@@ -1,9 +1,9 @@
 <launch>
-	<include file="$(find uwsim_dynamics)/launch/dolphin_dynamics.launch">
-	   <arg name="namespace" value="dolphin" />
-	   <arg name="params" value="$(find uwsim_dynamics)/config/dynamics_dolphin.yaml" />
-	</include>
-	<!--<rosparam param="/dolphin/dynamics/external_force_topic">dolphin/ForceSensor</rosparam>-->
-	<!--<arg name="thrusters_topic" default="/dolphin/thrusters_input" />-->
+    <rosparam file = "$(find uwsim_dynamics)/config/dynamics_dolphin.yaml" command="load" />
+    <arg name="namespace" value="dolphin" />
+    <arg name="input_topic" default="/$(arg namespace)/thrusters_input" />
+    <arg name="output_topic" default="/$(arg namespace)/uwsim/pose_sp" />
+    <node name="uwsim_dynamics" pkg="uwsim_dynamics" type="uwsim_dynamics"
+		  args="$(arg input_topic) $(arg output_topic)" output="screen" respawn="false"/>
 </launch>
 
