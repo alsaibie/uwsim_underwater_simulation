@@ -7,6 +7,8 @@
 #include <mathlib/math/Functions.hpp>
 
 using namespace matrix;
+using namespace PController;
+
 PositionController::PositionController() {
 
     _state.pos.p.zero();
@@ -47,7 +49,7 @@ PositionController::controlAttitude(const float &dt) {
 
 
 
-    if(_mode.mode == Controller::Manual){
+    if(_mode.mode == PController::Manual){
 
 
         _att_d.orientation = _att_sp.orientation.emult(_limits.max_att_angle);
@@ -59,7 +61,8 @@ PositionController::controlAttitude(const float &dt) {
 //                 (double)_att_d.orientation_q(2), (double)_att_d.orientation_q(3));
 
         /* Desired attitude is w.r.t to reference position */
-        _att_d.orientation_q =    _qref * _att_d.orientation_q.inversed();
+//        _att_d.orientation_q =    _qref * _att_d.orientation_q.inversed();
+        _att_d.orientation_q =    _qref.inversed() * _att_d.orientation_q;
         _att_d.orientation_q *= math::signNoZero(_att_d.orientation_q(0));
         _att_d.orientation_q(0) = math::constrain(_att_d.orientation_q(0), -1.f, 1.f);
         _att_d.orientation_q(1) = math::constrain(_att_d.orientation_q(1), -1.f, 1.f);

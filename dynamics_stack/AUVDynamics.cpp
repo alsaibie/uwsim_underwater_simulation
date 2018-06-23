@@ -4,11 +4,25 @@
 
 #include "AUVDynamics.hpp"
 #include <iostream>
+using namespace Dynamics;
 
 AUVDynamics::AUVDynamics() {
-    /* Initialize Dynamics */
+    /* Zero States */
+    _state.pos.setZero();
+    _state.pos_dot.setZero();
+    _state.vel.setZero();
+    _state.vel_dot.setZero();
+    _state.att.orientation.setZero();
+    _state.att.orientation_q.setIdentity();
+    _state.power.bat_percent_remaining = 100.0;
+    _state.power.bat_vnom = 8.4;
+    _state.power.bat_I_mA = 0;
+}
+
+void AUVDynamics::initialize(void){
+
+    /* Initialize Dynamics - only after setting constants */
     _dparam.Mv = mass_matrix();
-    std::cout << "Mass Matrix" << std::endl << _dparam.Mv << std::endl;
     _dparam.Mv_inv = _dparam.Mv.inverse();
 
     /** x forward z downward convention (y right)
@@ -31,13 +45,22 @@ AUVDynamics::AUVDynamics() {
     double L = _constants.actuator.L;
     _dparam.B = MatrixXd::Zero(6, _constants.actuator.count * 2);
     _dparam.B << 1, 1, 1, 1, 0, 0, 0, 0,
-                 0, 0, 0, 0, 0, 0, 0, 0,
-                 0, 0, 0, 0, 0, 0, 0, 0,
-                 0, 0, 0, 0, inv_(0), inv_(1), inv_(2), inv_(3),
-                 -L, L, -L, L, 0, 0, 0, 0,
-                 -L, L, L, -L, 0, 0, 0, 0;
-}
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, inv_(0), inv_(1), inv_(2), inv_(3),
+            -L, L, -L, L, 0, 0, 0, 0,
+            -L, L, L, -L, 0, 0, 0, 0;
 
+    std::cout << "Mass Matrix" << std::endl << _dparam.Mv << std::endl;
+    std::cout << "B Matrix" << std::endl << _dparam.B << std::endl;
+    std::cout <<" Unity Dvv Vector: " <<  std::endl << damping_vector(VectorXd::Constant(6, 1)) << endl;
+    std::cout <<" Unity Cv Matrix: " <<  std::endl << coriolis_matrix(VectorXd::Constant(6, 1)) << endl;
+    std::cout <<" Unity Cvv Vector: " <<  std::endl << coriolis_matrix(VectorXd::Constant(6, 1)) * VectorXd::Constant(6, 1) << endl;
+
+//    _w_hz_sp.setZero(_constants.actuator.count);
+    _w_hz_sp.setZero(4);
+
+}
 
 Matrix6d AUVDynamics::mass_matrix() {
     /**
@@ -46,12 +69,11 @@ Matrix6d AUVDynamics::mass_matrix() {
 
     /* Mass: Rigid Body */
     double m_ = _constants.inertia.mass;
-    Matrix3d t_ = _constants.inertia.tensor;
     Matrix6d M_ = MatrixXd::Zero(6,6);
     M_.topLeftCorner(3, 3) <<   m_, 0.0, 0.0,
                                 0.0, m_, 0.0,
                                 0.0, 0.0, m_;
-    M_.bottomLeftCorner(3,3) = _constants.inertia.tensor;
+    M_.bottomRightCorner(3,3) = _constants.inertia.tensor;
 
     //  Tensor is precalculated and provided
     //  Ix = self.mass*(pow(b,2)+pow(c,2))/5
@@ -70,12 +92,13 @@ Matrix6d AUVDynamics::mass_matrix() {
     double Xud_ = -m_ * (alpha_0 / (2 - alpha_0));
     double Yvd_ = -m_ * (beta_0 / (2 - beta_0));
     double Zwd_ = Yvd_;
-    double Kpd_ = 0;
+
     double dummy1 = (pow(b_, 2) - pow(a_, 2));
     double dummy2 = (alpha_0 - beta_0);
     double dummy3 = (pow(b_, 2) + pow(a_, 2));
     double Mqd_ = (-m_ / 5) * ((pow(dummy1, 2) * dummy2) / (2 * dummy1 - dummy3 * dummy2));
     double Nrd_ = Mqd_;
+    double Kpd_ = Mqd_;
 
     Vector6d m_a_; m_a_ << -Xud_, -Yvd_, -Zwd_, -Kpd_, -Mqd_, -Nrd_;
     Matrix6d Ma_ = m_a_.asDiagonal();
@@ -85,28 +108,20 @@ Matrix6d AUVDynamics::mass_matrix() {
     return M_;
 }
 
-Matrix6d AUVDynamics::damping_matrix(const Vector6d &v) {
+Vector6d AUVDynamics::damping_vector(const Vector6d &v) {
     /**
-     * TODO: add note
+     *  The damping force vector computed here is based on CFD analysis.
+     *  The sign of the elements correspond to the sign of the velocity element.
      */
 
-    /* Linear Hydrodynamic Damping Coefficients */
-    static auto Xu_ = _constants.damping.damping(0), Yv_ = _constants.damping.damping(1), Zw_ = _constants.damping.damping(2),
-            Kp_ = _constants.damping.damping(3), Mq_ = _constants.damping.damping(4), Nr_ = _constants.damping.damping(5);
+    Vector6d Dv; Dv <<   poly_abs_discontinuos_positive(_constants.damping.ksurge, v[0]),
+                         poly_abs_discontinuos_positive(_constants.damping.ksway,  v[1]),
+                         poly_abs_discontinuos_positive(_constants.damping.kheave, v[2]),
+                         poly_abs_discontinuos_positive(_constants.damping.kroll,  v[3]),
+                         poly_abs_discontinuos_positive(_constants.damping.kpitch, v[4]),
+                         poly_abs_discontinuos_positive(_constants.damping.kyaw,   v[5]);
 
-    /* Quadratic Hydrodynamic Damping Coefficients */
-    static auto Xuu_ = _constants.damping.q_damping(0), Yvv_ = _constants.damping.q_damping(1),
-            Zww_ = _constants.damping.q_damping(2); // [Kg/m]
-    static auto Kpp_ = _constants.damping.q_damping(3), Mqq_ = _constants.damping.q_damping(4),
-            Nrr_ = _constants.damping.q_damping(5); // [Kg*m*m]
-
-    Vector6d Dv_; Dv_ << -Xu_ - Xuu_ * fabs(v[0]),
-            -Yv_ - Yvv_ * fabs(v[1]),
-            -Zw_ - Zww_ * fabs(v[2]),
-            -Kp_ - Kpp_ * fabs(v[3]),
-            -Mq_ - Mqq_ * fabs(v[4]),
-            -Nr_ - Nrr_ * fabs(v[5]);
-    return Dv_.asDiagonal();
+    return Dv;
 
 }
 
@@ -125,8 +140,8 @@ Matrix6d AUVDynamics::coriolis_matrix(const Vector6d &v) {
     Vector3d dot2 = Mv21_ * vTranslate_ + Mv22_ * vRotate_;
 
     Matrix6d Cv_ = Matrix6d::Zero();
-    Cv_.topLeftCorner(3, 3)     = -skew_m(dot1);
     Cv_.topRightCorner(3, 3)    = -skew_m(dot1);
+    Cv_.bottomLeftCorner(3, 3)  = -skew_m(dot1);
     Cv_.bottomRightCorner(3, 3) = -skew_m(dot2);
 
 
@@ -163,12 +178,12 @@ Vector6d AUVDynamics::gravity_vector(const Quaterniond &q) {
     auto term2 = (qwqx_ + qyqz_);
     auto term3 = (-qw_2_ + qx_2_ + qy_2_ - qz_2_);
 
-    Vector6d g_; g_ << -2 * term1 * (W_ - B_),
-                        2 * term2 * (W_ - B_),
-                        -term3 * (W_ - B_),
-                        -term3 * (yg_ * W_ - yb_ * B_) - 2 * term2 * (zg_ * W_ - zb_ * B_),
-                        +term3 * (xg_ * W_ - xb_ * B_) - 2 * term1 * (zg_ * W_ - zb_ * B_),
-                        +2 * term2 * (xg_ * W_ - xb_ * B_) + 2 * term1 * (yg_ * W_ - yb_ * B_);
+    Vector6d g_; g_ << 2 * term1 * (W_ - B_),
+                        -2 * term2 * (W_ - B_),
+                        term3 * (W_ - B_),
+                        term3 * (yg_ * W_ - yb_ * B_) + 2 * term2 * (zg_ * W_ - zb_ * B_),
+                        -term3 * (xg_ * W_ - xb_ * B_) + 2 * term1 * (zg_ * W_ - zb_ * B_),
+                        -2 * term2 * (xg_ * W_ - xb_ * B_) - 2 * term1 * (yg_ * W_ - yb_ * B_);
     return g_;
 
 }
@@ -179,11 +194,10 @@ VectorXd AUVDynamics::motors_transient_dynamics(const VectorXd &w_hz_sp, const d
     *   accurate compared to difference from z-transform
     **/
     VectorXd w_hz_tr_ = VectorXd::Zero(w_hz_sp.rows());
-
     static VectorXd w_hz_tr_1_ = w_hz_tr_;
 
     for(int k = 0; k < _constants.actuator.count; k++) {
-        w_hz_tr_(k) = (dt * w_hz_sp(k) + _constants.actuator.count * w_hz_tr_1_(k)) / (dt + _constants.actuator.count);
+        w_hz_tr_(k) = (dt * w_hz_sp(k) + _constants.actuator.tconst * w_hz_tr_1_(k)) / (dt + _constants.actuator.tconst);
         w_hz_tr_1_(k) = w_hz_tr_(k);
     }
 
@@ -199,20 +213,9 @@ VectorXd AUVDynamics::thrust_n(const VectorXd &w_hz_tr) {
     thrust_n_.setZero();
 
     for(int k = 0; k < _constants.actuator.count; k++) {
-        if (w_hz_tr(k) > 0.0){
-            thrust_n_(k) = poly2n_abs(_constants.actuator.kf, w_hz_tr(k));
-            if (thrust_n_(k) < 0.0) thrust_n_(k) = 0.0;
-        }
-        else if (w_hz_tr(k) < 0.0){
-            thrust_n_(k) = - poly2n_abs(_constants.actuator.kf, w_hz_tr(k));
-            if (thrust_n_(k) > 0.0) thrust_n_(k) = 0.0;
-        }
-        else{
-            thrust_n_(k) = 0.0;
-        }
+        thrust_n_(k) = poly_abs_discontinuos_positive(_constants.actuator.kf, w_hz_tr(k));
     }
-
-    return thrust_n_ / 1000.0;
+    return thrust_n_;
 }
 
 VectorXd AUVDynamics::torque_n(const VectorXd &w_hz_tr) {
@@ -224,20 +227,10 @@ VectorXd AUVDynamics::torque_n(const VectorXd &w_hz_tr) {
     torque_n_.setZero();
 
     for(int k = 0; k < _constants.actuator.count; k++) {
-        if (w_hz_tr(k) > 0.0){
-            torque_n_(k) = poly2n_abs(_constants.actuator.km, w_hz_tr(k));
-            if (torque_n_(k) < 0.0) torque_n_(k) = 0.0;
-        }
-        else if (w_hz_tr(k) < 0.0){
-            torque_n_(k) = - poly2n_abs(_constants.actuator.km, w_hz_tr(k));
-            if (torque_n_(k) > 0.0) torque_n_(k) = 0.0;
-        }
-        else{
-            torque_n_(k) = 0.0;
-        }
+        torque_n_(k) = poly_abs_discontinuos_positive(_constants.actuator.km, w_hz_tr(k));
     }
 
-    return torque_n_ / (1000.0 * 1000.0);
+    return torque_n_ ;
 }
 
 Vector6d AUVDynamics::generalized_force(const VectorXd &w_hz_tr) {
@@ -247,8 +240,8 @@ Vector6d AUVDynamics::generalized_force(const VectorXd &w_hz_tr) {
 
     static VectorXd u_ = VectorXd::Zero(_constants.actuator.count * 2);
 
-    u_.head(_constants.actuator.count) =  thrust_n(_w_hz_tr);
-    u_.tail(_constants.actuator.count) =  torque_n(_w_hz_tr);
+    u_.head(_constants.actuator.count) =  thrust_n(w_hz_tr);
+    u_.tail(_constants.actuator.count) =  torque_n(w_hz_tr);
 
     return _dparam.B * u_;
 }
@@ -259,15 +252,29 @@ void AUVDynamics::inverse_dynamics(const double &dt) {
      */
     static Vector6d CDvv_;
 
-    _dparam.Dv   = damping_matrix(_state.vel);
+    if(DEBUG_OUTPUT) {
+        cout << "vel: " << _state.vel << endl;
+        cout << "whzsp: " << _w_hz_sp << endl;
+    }
+
+    _dparam.Dvv   = damping_vector(_state.vel);
     _dparam.Cv   = coriolis_matrix(_state.vel);
+    _dparam.Cvv  = _dparam.Cv * _state.vel;
     _dparam.gRB  = gravity_vector(_state.att.orientation_q);
     _w_hz_tr     = motors_transient_dynamics(_w_hz_sp, dt);  // Apply First Order Delay
     _dparam.tau  = generalized_force(_w_hz_tr);  // Apply thruster dynamics and allocation matrix
 
-    CDvv_ = (_dparam.Dv + _dparam.Cv) * _state.vel;
+    if(DEBUG_OUTPUT) {
+        cout << "Dvv: " << _dparam.Dvv << endl;
+        cout << "Cvv: " << _dparam.Cvv << endl;
+        cout << "gRB: " << _dparam.gRB << endl;
+        cout << "whztr: " << _w_hz_tr << endl;
+        cout << "tau: " << _dparam.tau << "\n" << endl;
+    }
 
-    _state.vel_dot = _dparam.Mv_inv * (_dparam.tau - CDvv_ -_dparam.gRB); // inv(M)*(tau-cdvv-g+collisionForce)
+//    _state.vel_dot = _dparam.Mv_inv * (_dparam.tau - _dparam.Dvv - _dparam.gRB); // inv(M)*(tau-cdvv-g+collisionForce)
+    _state.vel_dot = _dparam.Mv_inv * (_dparam.tau - _dparam.Dvv - _dparam.Cvv - _dparam.gRB); // inv(M)*(tau-cdvv-g+collisionForce)
+
 //     self.collision_force = [0, 0, 0, 0, 0, 0]   # TODO: Incorporate Collision Dynamics
 
     if (!_inverse_dynamics_initialized) _inverse_dynamics_initialized = true;
@@ -294,29 +301,58 @@ void AUVDynamics::inverse_kinematics(const double &dt) {
     expq_ = exp_wq(_state.vel.tail(3), dt);
     _state.att.orientation_q = _state.att.orientation_q * expq_;
     _state.att.orientation   =  Quaternion2eulerd(_state.att.orientation_q);
+    /* Discontinuity Cleanup TODO: Use a better approach*/
+    if(fabs(_state.att.orientation(0)) > (M_PI - 0.05f)){
+        _state.att.orientation(0) = (_state.att.orientation(0) > 0.0 ? (M_PI -_state.att.orientation(0)) :
+                                     - (M_PI - fabs(_state.att.orientation(0))));
+    }
+    if(fabs(_state.att.orientation(1)) > (M_PI - 0.05f)){
+//        _state.att.orientation(1) = (_state.att.orientation(1) > 0.0 ? (M_PI -_state.att.orientation(1)) :
+//                                     - (M_PI - fabs(_state.att.orientation(1))));
+          _state.att.orientation(1) = fabs(_state.att.orientation(1));
+    }
+    if(fabs(_state.att.orientation(2)) > (M_PI - 0.05f)){
+        _state.att.orientation(2) = (_state.att.orientation(2) > 0.0 ? (M_PI -_state.att.orientation(2)) :
+                                     - (M_PI - fabs(_state.att.orientation(2))));
+    }
+
+    if(DEBUG_OUTPUT){
+        cout << " Pos: " << _state.pos << endl;
+        cout << " Att Euler: " << _state.att.orientation << endl;
+        printf("Att Q: %f, %f, %f, %f", _state.att.orientation_q.w(), _state.att.orientation_q.x(),
+               _state.att.orientation_q.y(), _state.att.orientation_q.z());
+        cout << "\n" << endl;
+    }
 }
 
 void AUVDynamics::vnom_battery_dynamics(const VectorXd &w_hz_tr, const double &dt) {
     /** compute current draw rate based on motor dynamics - must be called at T = self.diffq_period **/
     static double bat_mAh_consumed_ = 0.0f;
 
-    _state.power.bat_I = 0.0;
+    _state.power.bat_I_mA = 0.0;
     for(int k = 0; k < _constants.actuator.count; k++) {
         /* Total draw from all actuators */
-        _state.power.bat_I += poly2n_abs(_constants.battery.ki, w_hz_tr(k));
+        _state.power.bat_I_mA += poly_abs(_constants.battery.ki, w_hz_tr(k));
     }
 
-    bat_mAh_consumed_ = bat_mAh_consumed_ + (_state.power.bat_I * dt) / 3600.0;
+    bat_mAh_consumed_ = bat_mAh_consumed_ + (_state.power.bat_I_mA * dt) / 3600.0;
 
     /* Update remaining charge voltage based on consumed mAh and instantaneous current draw */
     double mAh_consumed_percentage_ = bat_mAh_consumed_ * 100 / _constants.battery.mAh;
     _state.power.bat_percent_remaining = 100 - mAh_consumed_percentage_;
 
-    double mV_ = _constants.battery.cell_n * (poly2n_abs(_constants.battery.kBd,mAh_consumed_percentage_) -
-                                              _state.power.bat_I * _constants.battery.esr / 1000.0);
-
+    double mV_ = _constants.battery.cell_n * (poly_abs(_constants.battery.kBd,mAh_consumed_percentage_) -
+                                              _state.power.bat_I_mA * _constants.battery.esr / 1000.0);
     _state.power.bat_vnom =  mV_ / 1000.0;
 }
+
+void AUVDynamics::setInitialState(const States &initial_state){
+    _state = initial_state;}
+
+void AUVDynamics::setConstants(const Constants &constants){
+    _constants = constants;
+    _actuator_count = _constants.actuator.count;}
+
 
 void AUVDynamics::setInput(const Inputs &input){
 
@@ -334,21 +370,17 @@ void AUVDynamics::setInput(const Inputs &input){
     **/
 
     Inputs inputs_ = input;
-    auto min_pwm_ = _constants.actuator.pwm_range(0), mid_pwm_ = _constants.actuator.pwm_range(1),
+    double min_pwm_ = _constants.actuator.pwm_range(0), mid_pwm_ = _constants.actuator.pwm_range(1),
             max_pwm_ = _constants.actuator.pwm_range(2);
 
-    VectorXd w_hz_(_actuator_count);
+    if(DEBUG_OUTPUT) cout << "w_pwm: " << input.w_pwm << endl;
 
     for (int k = 0; k <_constants.actuator.count; k++){
-        auto w_voltage_ = 2 * _state.power.bat_vnom * (inputs_.w_pwm(k) - mid_pwm_) / (max_pwm_ - min_pwm_);
-        if (w_voltage_ >= 0){
-            w_hz_(k) = poly2n_abs(_constants.actuator.kv, w_voltage_) / 1000.0;
-        } else{
-            w_hz_(k) = - poly2n_abs(_constants.actuator.kv, w_voltage_) / 1000.0;
-        }
-    }
 
-    _w_hz_sp = w_hz_;
+        double w_voltage_ = 2.0 * _state.power.bat_vnom * (inputs_.w_pwm(k) - mid_pwm_) / (max_pwm_ - min_pwm_);
+        if(DEBUG_OUTPUT) cout << "voltage: " << w_voltage_ << endl;
+        _w_hz_sp(k) = poly_abs_discontinuos_positive(_constants.actuator.kv, w_voltage_) ;
+    }
 
 }
 

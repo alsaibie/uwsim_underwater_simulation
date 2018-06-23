@@ -4,11 +4,25 @@
 
 
 #include "Sensor.hpp"
-
+#include <iostream>
 using namespace Eigen;
 using namespace Dynamics_Math;
+using namespace Sensor;
 
 SensorDynamics::SensorDynamics(){
+    _output_state.imu.acc.setZero();
+    _output_state.imu.gyro.setZero();
+    _output_state.imu.mag.setZero();
+    _input_state.vel.setZero();
+    _input_state.pos.setZero();
+    _input_state.vel_dot.setZero();
+    _input_state.pos_dot.setZero();
+    _input_state.att.orientation_q.setIdentity();
+    _input_state.att.orientation.setZero();
+
+}
+
+void SensorDynamics::Initialize(){
     /* Initialize Stochastics */
     _sen_acc_dist = std::normal_distribution<double>(0.0, _param.acc.std);
     _sen_gyro_dist = std::normal_distribution<double>(0.0, _param.gyro.std);
@@ -21,9 +35,8 @@ SensorDynamics::SensorDynamics(){
                                          _param.mag.declination * M_PI / 180.0)).inverse();
 
     qmag_fu.normalize();
+
 }
-
-
 
 /** For acc and gyro sing noise model suggested in here:
  * https://github.com/ethz-asl/kalibr/wiki/IMU-Noise-Model
@@ -38,6 +51,7 @@ void SensorDynamics::acclerometer_real(Vector3d &acc, double dt) {
         bias = bias + _param.acc.bias_diffusion * _sen_acc_dist(_rand_generator) * sqrt(dt);
         acc[k] +=(float)(bias + _param.acc.noise_density * _sen_acc_dist(_rand_generator) / sqrt(dt));
     }
+
 }
 
 void SensorDynamics::gyroscope_real(Vector3d &gyro, double dt) {
@@ -49,7 +63,7 @@ void SensorDynamics::gyroscope_real(Vector3d &gyro, double dt) {
     }
 }
 
-void SensorDynamics::magnetometer_real(Vector3d &mag, double dt) {
+void SensorDynamics::magnetometer_real(Vector3d &mag) {
 
     /** Add Gaussian noise  **/
     for (uint8_t k = 0; k < 3; k++){
@@ -72,7 +86,7 @@ void SensorDynamics::Iterate(const double &dt){
      */
 
     /* Get Linear Acceleration in d frame */
-    Vector3d acc_d = _input_state.vel_dot.tail(3);
+    Vector3d acc_d = _input_state.vel_dot.head(3);
 
     /* Add g - rotated into d frame */
     Quaterniond g_u = QuaternionVectord( Vector3d(0,0,9.81));
@@ -111,7 +125,7 @@ void SensorDynamics::Iterate(const double &dt){
     Quaterniond qmag_u = QuaternionVectord(mag_u);
     Vector3d mag_m =  (q_orientation_du.inverse() * qmag_u * q_orientation_du).vec();
 
-    magnetometer_real(mag_m, dt);
+    magnetometer_real(mag_m);
 
     _output_state.imu.mag = mag_m;
 

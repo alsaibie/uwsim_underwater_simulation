@@ -2,18 +2,50 @@
 // Created by alsaibie on 5/30/18.
 //
 #pragma once
-
+#define DEBUG_OUTPUT false
 #include <Eigen/Dense>
-
-typedef Eigen::Matrix<double, 6, 1> Vector6d;
-typedef Eigen::Matrix<double, 6, 6> Matrix6d;
 
 namespace Dynamics_Math{
     using namespace Eigen;
 
-    inline double poly2n_abs(const Vector3d &k, const double x) {
-        /** Simple 2nd degree polynomial - positive x */
-        return k(0) * x * x + k(1) * fabs(x) + k(2);
+    typedef Eigen::Matrix<double, 6, 1> Vector6d;
+    typedef Eigen::Matrix<double, 6, 6> Matrix6d;
+
+    inline double poly_abs(const VectorXd &v, const double x) {
+        /** Simple nth degree polynomial - returns absolute positive value */
+        double ret = v(0);
+        for (int k = 1; k < v.size(); k++ ){
+            ret += v(k) * pow(fabs(x), k);
+        }
+        if (ret < 0.0f){
+            return 0.0f;
+        }
+        else {
+            return ret;
+        }
+    }
+
+    inline double poly_abs_discontinuos_positive(const VectorXd &v, const double x) {
+        /** Simple nth degree polynomial - reserves sign of x, assumes positive curve fitting */
+        double ret = v(0);
+        for (int k = 1; k < v.size(); k++ ){
+            ret += v(k) * pow(fabs(x), k);
+        }
+        if (x > 0.0f){
+            if (ret < 0.0f){
+                return 0.0f;
+            }
+            else return ret;
+        }
+        else if (x < 0.0f){
+            if (-ret > 0.0f){
+                return 0.0f;
+            }
+            else return -ret;
+        }
+        else {
+            return 0.0f;
+        }
     }
 
     inline Vector6d state_integral(Vector6d &xdot, Vector6d &x, double dt) {
@@ -73,6 +105,7 @@ namespace Dynamics_Math{
         r << -2.0 * pow(qj, 2) - 2.0 * pow(qk, 2) + 1, 2.0 * qi * qj - 2.0 * qk * qr, 2.0 * qi * qk + 2.0 * qj * qr,
                 2.0 * qi * qj + 2.0 * qk * qr, -2.0 * pow(qi, 2) - 2.0 * pow(qk, 2) + 1, -2.0 * qi * qr + 2.0 * qj * qk,
                 2.0 * qi * qk - 2.0 * qj * qr, 2.0 * qi * qr + 2.0 * qj * qk, -2.0 * pow(qi, 2) - 2.0 * pow(qj, 2) + 1;
+        return r;
     }
 
     inline Quaterniond exp_wq(const Vector3d &v, const double dt) {
@@ -115,5 +148,12 @@ namespace Dynamics_Math{
                 x[2], 0.0f, -x[0],
                 -x[1], x[0], 0.0f;
         return m;
+    }
+
+    inline double unity_to_pwm(const double &v){ return v * 400.0 + 1500.0; }
+
+    template <typename T>
+    inline int sgn(T val) {
+        return (T(0) < val) - (val < T(0));
     }
 }

@@ -15,53 +15,53 @@
 #include <matrix/matrix/math.hpp>
 
 
-using namespace matrix;
 
-namespace Controller
-{
+
+namespace PController {
+    using namespace matrix;
     struct States {
-        struct Position{
-            Vector3f p;
+        struct Position {
+            matrix::Vector3f p;
         } pos;
 
-        struct Attitude{
-            Vector3f orientation;
-            Quatf orientation_q;
+        struct Attitude {
+            matrix::Vector3f orientation;
+            matrix::Quatf orientation_q;
         } att;
 
         struct Velocity {
-            Vector<float, 6> v;
+            matrix::Vector<float, 6> v;
         } vel;
 
-        struct Power{
+        struct Power {
             float bat_scale_mA;
         } power;
     };
 
     struct Setpoints {
 
-        struct Position{
-            Vector3f p;
+        struct Position {
+            matrix::Vector3f p;
         };
 
-        struct Attitude{
+        struct Attitude {
             float thrust;
-            Vector3f orientation;
-            Quatf orientation_q;
+            matrix::Vector3f orientation;
+            matrix::Quatf orientation_q;
         };
 
         struct Velocity {
-            Vector<float, 6> v;
+            matrix::Vector<float, 6> v;
         };
     };
 
     struct Gains {
-        Vector3f position_p;
-        Vector3f velocity_p;
+        matrix::Vector3f position_p;
+        matrix::Vector3f velocity_p;
     };
 
     struct Limits {
-        Vector3f max_att_angle;
+        matrix::Vector3f max_att_angle;
     };
 
     struct Constraints {
@@ -69,8 +69,8 @@ namespace Controller
 
     struct Outputs {
         float thrust;
-        Vector3f orientation;
-        Quatf orientation_q;
+        matrix::Vector3f orientation;
+        matrix::Quatf orientation_q;
     };
 
     typedef enum {
@@ -79,7 +79,7 @@ namespace Controller
         Position
     } CONTROL_MODE;
 
-    struct ControlMode{
+    struct ControlMode {
         uint8_t mode;
         bool is_armed;
     };
@@ -87,66 +87,83 @@ namespace Controller
     struct ControllerStatus {
 
     };
-}
 
-class PositionController {
 
-public:
-    PositionController();
-    ~PositionController() {};
+    class PositionController {
 
-    /* Input Interfaces */
-    void updateStates(const Controller::States &state){ _state = state; }
-    void updateAttitudeSetpoint(const Controller::Setpoints::Attitude &att_sp){ _att_sp = att_sp;}
-    void updatePositionSetpoint(const Controller::Setpoints::Position &pos_sp){ _pos_sp = pos_sp;}
-    void updateVelocitySetpoint(const Controller::Setpoints::Velocity &vel_sp){ _vel_sp = vel_sp;}
-    void updateGains(const Controller::Gains &gains) {_gains = gains;}
-    void updateLimits(const Controller::Limits &limits) {_limits = limits; }
-    void updateSaturations(const Controller::Constraints &constraints) {_constraints = constraints;}
-    void updateControlMode(const Controller::ControlMode mode){_mode = mode;}
-    void resetSetpoints();
-    void resetReferenceState() {_qref = _state.att.orientation_q;}
+    public:
+        PositionController();
 
-    /* Controller Executions */
-    void controlAttitude(const float &dt);
-    void controlVelocity(const float &dt);
-    void controlPosition(const float &dt);
+        ~PositionController() {};
 
-    /* Output Interfaces */
-    Controller::Limits              getLimits() {return _limits;}
-    Controller::Gains               getGains() {return _gains;}
-    Controller::Setpoints::Position getPositionSetpoint() { return _pos_sp; }
-    Controller::Setpoints::Velocity getVelocitySetpoint() { return _vel_sp; }
-    Controller::Outputs             getDesiredAttitude() { return _att_d;}
-    Controller::ControllerStatus    getControllerStatus() {return _ctrl_status;}
+        /* Input Interfaces */
+        void updateStates(const PController::States &state) { _state = state; }
 
-private:
+        void updateAttitudeSetpoint(const PController::Setpoints::Attitude &att_sp) { _att_sp = att_sp; }
 
-    /* States */
-    Controller::States _state {};
+        void updatePositionSetpoint(const PController::Setpoints::Position &pos_sp) { _pos_sp = pos_sp; }
 
-    /* Setpoints - Not necessary provided together in the controller configuration */
-    Controller::Setpoints::Position  _pos_sp {};
-    Controller::Setpoints::Velocity  _vel_sp {};
-    Controller::Setpoints::Attitude  _att_sp {};
+        void updateVelocitySetpoint(const PController::Setpoints::Velocity &vel_sp) { _vel_sp = vel_sp; }
 
-    /* Control Intermediate Outputs */
+        void updateGains(const PController::Gains &gains) { _gains = gains; }
 
-    /* Control Gains,  Limits and Saturation */
-    Controller::Gains _gains {};
-    Controller::Limits _limits {};
-    Controller::Constraints _constraints {};
-    Controller::ControlMode _mode {};
+        void updateLimits(const PController::Limits &limits) { _limits = limits; }
 
-    /* Control Variables */
-    Controller::ControllerStatus _ctrl_status {};
-    Quatf _qref;
-    /* Control Output */
-    Controller::Outputs _att_d {};
+        void updateSaturations(const PController::Constraints &constraints) { _constraints = constraints; }
 
-    /* Internal Routines */
+        void updateControlMode(const PController::ControlMode mode) { _mode = mode; }
+
+        void resetSetpoints();
+
+        void resetReferenceState() { _qref = _state.att.orientation_q; }
+
+        /* Controller Executions */
+        void controlAttitude(const float &dt);
+
+        void controlVelocity(const float &dt);
+
+        void controlPosition(const float &dt);
+
+        /* Output Interfaces */
+        PController::Limits getLimits() { return _limits; }
+
+        PController::Gains getGains() { return _gains; }
+
+        PController::Setpoints::Position getPositionSetpoint() { return _pos_sp; }
+
+        PController::Setpoints::Velocity getVelocitySetpoint() { return _vel_sp; }
+
+        PController::Outputs getDesiredAttitude() { return _att_d; }
+
+        PController::ControllerStatus getControllerStatus() { return _ctrl_status; }
+
+    private:
+
+        /* States */
+        PController::States _state{};
+
+        /* Setpoints - Not necessary provided together in the controller configuration */
+        PController::Setpoints::Position _pos_sp{};
+        PController::Setpoints::Velocity _vel_sp{};
+        PController::Setpoints::Attitude _att_sp{};
+
+        /* Control Intermediate Outputs */
+
+        /* Control Gains,  Limits and Saturation */
+        PController::Gains _gains{};
+        PController::Limits _limits{};
+        PController::Constraints _constraints{};
+        PController::ControlMode _mode{};
+
+        /* Control Variables */
+        PController::ControllerStatus _ctrl_status{};
+        Quatf _qref;
+        /* Control Output */
+        PController::Outputs _att_d{};
+
+        /* Internal Routines */
+
+    };
+
 
 };
-
-
-

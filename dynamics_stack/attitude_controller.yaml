@@ -1,0 +1,64 @@
+# Attitude Controller Settings
+
+Control/DP_ROLL_P: 0.35
+Control/DP_ROLLRATE_P: 0.15
+Control/DP_ROLLRATE_I: 0.05
+Control/DP_RR_INT_LIM: 0.30
+Control/DP_ROLLRATE_D: 0.003
+Control/DP_ROLLRATE_FF: 0.15
+
+Control/DP_PITCH_P: 0.75
+Control/DP_PITCHRATE_P: 0.6
+Control/DP_PITCHRATE_I: 0.05
+Control/DP_PR_INT_LIM: 0.30
+Control/DP_PITCHRATE_D: 0.003
+Control/DP_PITCHRATE_FF: 0.0
+
+Control/DP_YAW_P: 0.75
+Control/DP_YAWRATE_P: 0.6
+Control/DP_YAWRATE_I: 0.1
+Control/DP_YR_INT_LIM: 0.30
+Control/DP_YAWRATE_D: 0.0
+Control/DP_YAWRATE_FF: 0.0
+Control/DP_ROLL_FF: 0.5
+
+Control/DP_DTERM_CUTOFF: 30.0
+
+Control/DP_TPA_BREAK_P: 1.0
+Control/DP_TPA_BREAK_I: 1.0
+Control/DP_TPA_BREAK_D: 1.0
+Control/DP_TPA_RATE_P: 0.0
+Control/DP_TPA_RATE_I: 0.0
+Control/DP_TPA_RATE_D: 0.0
+
+Control/DP_ROLLRATE_MAX: 150.0
+Control/DP_PITCHRATE_MAX: 100.0
+Control/DP_YAWRATE_MAX: 100.0
+Control/DP_ROLLRAUTO_MAX: 45.0
+Control/DP_ACRO_R_MAX: 360.0
+Control/DP_ACRO_P_MAX: 360.0
+Control/DP_ACRO_Y_MAX: 360.0
+Control/DP_ACRO_EXPO: 0.69
+Control/DP_ACRO_EXPO_R: 0.69
+Control/DP_ACRO_SUPEXPO: 0.7
+Control/DP_ACRO_SUPEXPOR: 0.7
+
+Control/DP_RATT_TH: 1.0
+Control/DP_BAT_SCALE_EN: 0
+
+Control/DP_HZ_THRST_C0: -2.10E-01
+Control/DP_HZ_THRST_C1: 1.68E-03
+Control/DP_HZ_THRST_C2: 1.27E-04
+
+# Guestimated from T=Kx^2 where T = 5000g.mm and x =120Hz
+Control/DP_HZ_TORQ_C2: 4.99E+4
+
+Control/DP_V_HZ_C0: 1.41E+00
+Control/DP_V_HZ_C1: -1.58E-02
+Control/DP_V_HZ_C2: 6.13E-04
+
+Control/DP_V_HZ_N_C0: 1.68E-01
+Control/DP_V_HZ_N_C1: -2.21E-01
+Control/DP_V_HZ_N_C2: 1.01E+00
+
+Contro/DP_ROTOR_R: 0.03

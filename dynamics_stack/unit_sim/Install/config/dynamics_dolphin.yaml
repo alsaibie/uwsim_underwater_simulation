@@ -1,0 +1,71 @@
+### Dynamics model parameters for G500
+### Simulation Time Properties
+dynamics/diffq_period: 0.001 # Dynamic Simulation integration timestep
+dynamics/pub_period: 0.005 # Publish rate set at 200 Hz
+
+### Inertia Properties
+dynamics/mass: 0.25
+dynamics/gravity_center: [0.0, 0.0, -0.002] # TODO: fix, should be w.r.t. to rB
+dynamics/buoyancy_center: [0.0, 0.0, 0.0] # TODO: fix this should remain zero but rG should change
+dynamics/g: 9.81
+dynamics/radius: [.05, .06, .07]
+#dynamics/tensor: [0.000000001, 0.0,0.0 , -1e-11, 0.0, 0.0, 0.0, 0.000000001, 0.0]
+# Tensor values based on Solidworks values Lxx etc
+dynamics/tensor: [410461.0E-9, 431.0E-9, -11631.0E-9, 431.0E-9, 338994.0E-9, -15.0E-9, -11631.0E-9, -15.0E-9, 546986.0E-9]
+
+### Damping Properties
+dynamics/damping: [-.02, .09, -.3, -0.0007, -0.0007, -0.0021]  # x1000
+dynamics/quadratic_damping: [1.06, 2.14, 3.75, 0.00008, 0.00009, 0.0003] # x1000
+dynamics/dzv: 0.05
+dynamics/dv: 0.35
+dynamics/dh: 0.4
+dynamics/density: 1000.0
+
+### Actuator Properties
+dynamics/num_actuators: 4
+#Actuator kF polynomial coefficients (Thrust to Speed relationship) T(n): 1000N(Hz)
+dynamics/actuators_kf: [1.27e-1, 1.6757, -210]
+#Actuator kM polynomial coefficients (Torque to Speed relationship) Tr(n): 1000N.mm(Hz)
+dynamics/actuators_km: [.09, 0, 0]
+#Actuator kV coefficients (Motor Actual Kv Coefficients) n(V): 1000Hz(Volts)
+dynamics/actuators_kV: [-1087.4, 22487, 5850]
+#Actuators current draw coefficients I(n)
+dynamics/actuators_kI: [8.32E-03, -5.61E-01, 1.62E+01, 1.47E+00]
+#Actuators acting radius (meters) TODO: VERIFY
+dynamics/actuators_radius: .03
+#Actuator time constant for first order actuator dynamic model:
+dynamics/actuators_tconst: .01
+#Inputs higher than actuators_maxsat will saturate to actuators_maxsat
+dynamics/actuators_maxsat: 1
+#Inputs below actuators_minsat will saturate to actuators_minsat
+dynamics/actuators_minsat: -1
+# Actuator Direction Inversion
+dynamics/actuators_inversion: [1, 1,  -1, -1]
+# PWM Range [Min, Mid, Max]
+dynamics/actuators_pwm: [1100, 1500, 1900]
+
+
+### Battery Properties
+#Battery discharge rate coefficients : mV
+battery/discharge_K: [-8.57E-07, 8.00E-05, -2.18E-03, 1.30E-01, -9.69E+00, 4.20E+03]
+#LiPo Cell Charged Voltage (Nominal Battery Voltage V) TODO: In simulation, incorporate voltage drop based on currentuse
+battery/cell_Vmax: 4.2
+#LiPo Cell Cutoff Voltage
+battery/cell_Vcut: 3.0
+#LiPo Cell ESR
+battery/ESR: 0.009
+#Battery Cell Count (1n 3.7, 2n 7.4, 3n 11.1V, etc)
+battery/cell_n: 2
+#Battery Capacity (All Cells)
+battery/capacity_mAh: 2200
+
+### Topics
+dolphin/dynamics/topic_name: "/dataNavigator"
+dolphin/dynamics/external_force_topic: "/dolphin/ForceSensor"
+dolphin/dynamics/frame_id: "/shell"
+
+### Initialization
+# Meters and Rads [X, Y, Z, Roll, Pitch, Yaw] TODO: Get it back from the other launch file
+# TODO: How do I incorporate the vehicle model into the simulation?
+dynamics/initial_pose: [-1.0, 1.0, 4.0, 0, 0, 0] #[3.0, 1.1, 2.8, 0, 0, 3.14]
+dynamics/initial_velocity: [0, 0, 0, 0, 0, 0]

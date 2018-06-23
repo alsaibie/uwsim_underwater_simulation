@@ -1,0 +1,7 @@
+Control/DPC_THR_CRUISE: 0.1
+Control/DPC_THR_MAX: 0.9
+Control/DPC_THR_MIN: 0.0
+Control/DPC_THR_IDLE: 0.0
+Control/DPC_SP_CTRL_MODE: 0
+Control/DPC_MAX_TILT: 180.0
+Control/DPC_MAX_ROLL: 180.0

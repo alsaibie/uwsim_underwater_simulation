@@ -5,13 +5,15 @@
 #include "AttitudeController.hpp"
 #include <mathlib/math/Limits.hpp>
 #include <mathlib/math/Functions.hpp>
+//TODO: remove later
+#include <iostream>
 #define TPA_RATE_LOWER_LIMIT 0.05f
-
 #define AXIS_INDEX_ROLL 0
 #define AXIS_INDEX_PITCH 1
 #define AXIS_INDEX_YAW 2
 #define AXIS_COUNT 3
 
+using namespace AController;
 AttitudeController::AttitudeController()
 {
 
@@ -21,14 +23,15 @@ AttitudeController::AttitudeController()
     _state.rates.rpy.zero();
     _state.power.bat_scale_mA = 0;
     _state.power.bat_scale_en = false;
+    _state.power.bat_V_nom = 8.4;
     _att_sp.q.zero();
     _att_sp.q(0) = 1.0;
     _rates_sp.rpy.zero();
     _rates_sp.roll_move_rate = 0;
     _rates_sp.thrust = 0;
-    _rates_actuator_u.zero();
-    _mixed_actuator_u.zero();
-    _compensated_u.actuator.zero();
+    _tau_sp.zero();
+    _compensated_V_sp.zero();
+    _mixed_u.actuator.zero();
 
     for (int k = 0; k < _rotor_count; k++) {
         _rotors[k].roll_scale = _dolphin_x_table[k][0];
@@ -45,19 +48,17 @@ AttitudeController::resetSetpoints() {
     _rates_sp.rpy.zero();
     _rates_sp.thrust = 0.0f;
     _ctrl_status.rates_int.zero();
-    _rates_actuator_u.zero();
-    _mixed_actuator_u.zero();
-    _compensated_u.actuator.zero();
+    _tau_sp.zero();
+    _compensated_V_sp.zero();
+    _mixed_u.actuator.zero();
+    _state.power.bat_V_nom = 8.4; // TODO: this should come from a param
 }
 
 void
 AttitudeController::controlAttitude(const float &dt) {
 
-
-
     /* prepare yaw weight from the ratio between roll/pitch and yaw gains */
     Vector3f attitude_gain = _gains.att_p;
-//    PX4_INFO("Gains Roll: %f, Pitch: %f, Yaw: %f", (double) attitude_gain(0), (double) attitude_gain(1), (double) attitude_gain(2));
 
     const float pitch_yaw_gain = (attitude_gain(1) + attitude_gain(2)) / 2.f;
     const float roll_w = math::constrain(attitude_gain(2) / pitch_yaw_gain, 0.f, 1.f);
@@ -65,22 +66,16 @@ AttitudeController::controlAttitude(const float &dt) {
     Quatf q(_state.att.q);
     Quatf qd(_att_sp.q);
 
-//    PX4_INFO("Att SP %f, %f, %f, %f", (double)_att_sp.q(0), (double)_att_sp.q(1),
-//             (double)_att_sp.q(2), (double)_att_sp.q(3));
 
     /* ensure input quaternions are exactly normalized because acosf(1.00001) == NaN */
     q.normalize();
     qd.normalize();
     //TODO: q needs time to be valid, can I check validity somewhere before I do any work with it?
-//    PX4_INFO("q %f, %f, %f, %f", (double)q(0), (double)q(1), (double)q(2), (double)q(3));
-//    PX4_INFO("qd %f, %f, %f, %f", (double)qd(0), (double)qd(1), (double)qd(2), (double)qd(3));
+
 
     /* calculate reduced desired attitude neglecting vehicle's roll to prioritize pitch and yaw */
     Vector3f e_x = q.dcm_x();
     Vector3f e_x_d = qd.dcm_x();
-//    PX4_INFO("e_x %f, %f, %f, %f", (double)e_x(0), (double)e_x(1), (double)e_x(2));
-//    PX4_INFO("e_xd %f, %f, %f, %f", (double)e_x_d(0), (double)e_x_d(1), (double)e_x_d(2));
-
 
 
     Quatf qd_red(e_x, e_x_d);
@@ -88,19 +83,17 @@ AttitudeController::controlAttitude(const float &dt) {
 
     if (abs(qd_red(2)) > (1.f - 1e-5f) || abs(qd_red(3)) > (1.f - 1e-5f)) {
         /* In the infinitesimal corner case where the vehicle and thrust have the completely opposite direction */
-        PX4_INFO("Inifitisemal Case");
         qd_red = qd;
     } else {
         /* transform rotation from current to desired thrust vector into a world frame reduced desired attitude */
         qd_red *= q;
     }
 
-//    PX4_INFO("qe_red %f, %f, %f, %f", (double)qd_red(0), (double)qd_red(1), (double)qd_red(2), (double)qd_red(3));
-
 
     /* mix full and reduced desired attitude */
     Quatf q_mix = qd * qd_red.inversed();
     q_mix *= math::signNoZero(q_mix(0));
+
     /* catch numerical problems with the domain of acosf and asinf */
     q_mix(0) = math::constrain(q_mix(0), -1.f, 1.f);
     q_mix(1) = math::constrain(q_mix(1), -1.f, 1.f);
@@ -108,45 +101,33 @@ AttitudeController::controlAttitude(const float &dt) {
 
     /* quaternion attitude control law, qe is rotation from q to qd */
     Quatf qe = q.inversed() * qd;
-//    PX4_INFO("qe %f, %f, %f, %f", (double)qd(0), (double)qd(1), (double)qd(2), (double)qd(3));
 
     /* using sin(alpha/2) scaled rotation axis as attitude error (see quaternion definition by axis angle)
      * also taking care of the antipodal unit quaternion ambiguity */
     Vector3f eq = 2.f * math::signNoZero(qe(0)) * qe.imag();
-//    PX4_INFO("euler error Roll: %f, Pitch: %f, Yaw: %f", (double)eq(0), (double)eq(1), (double)eq(2));
     /* calculate angular rates setpoint */
     _rates_sp.rpy = eq.emult(attitude_gain);
-//    PX4_INFO("pref ff euler rates sp Roll: %f, Pitch: %f, Yaw: %f", (double)_rates_sp.rpy(0),
-//             (double)_rates_sp.rpy(1), (double)_rates_sp.rpy(2));
 
     /* Feed forward the roll setpoint rate. We need to apply the roll rate in the body frame.
      * We infer the body x axis by taking the first column of R.transposed (== q.inversed)
      * because it's the rotation axis for body roll and multiply it by the rate and gain. */
     // TODO: Change this to full FF model based control.
     Vector3f roll_feedforward_rate = q.inversed().dcm_x();
+    //TODO: Fix, either param or calculated in pos control
+    _rates_sp.roll_move_rate = 0.0;
     roll_feedforward_rate *= _rates_sp.roll_move_rate * _gains.att_ff(0);
     _rates_sp.rpy += roll_feedforward_rate;
-//
-//    PX4_INFO("Euler rates sp Roll: %f, Pitch: %f, Yaw: %f", (double)_rates_sp.rpy(0),
-//             (double)_rates_sp.rpy(1), (double)_rates_sp.rpy(2));
+
     /* limit rates */
     for (int i = 0; i < 3; i++) {
-        if (_mode.mode == Controller::CONTROL_MODE::Auto){
+        if (_mode.mode == AController::CONTROL_MODE::Auto){
             _rates_sp.rpy(i) = math::constrain(_rates_sp.rpy(i), -_limits.auto_rate_max(i), _limits.acro_rate_max(i));
 
         } else {
-
-
             _rates_sp.rpy(i) = math::constrain(_rates_sp.rpy(i), -_limits.manual_rate_max(i), _limits.manual_rate_max(i));
-
 
         }
     }
-//    PX4_INFO("constrained rates sp Roll: %f, Pitch: %f, Yaw: %f", (double)_rates_sp.rpy(0),
-//             (double)_rates_sp.rpy(1), (double)_rates_sp.rpy(2));
-
-//    PX4_INFO("Att Rates  Roll: %f, Pitch: %f, Yaw: %f, Thrust: %f", (double)_rates_sp.rpy(0), (double)_rates_sp.rpy(1),
-//             (double)_rates_sp.rpy(2), (double)_rates_sp.thrust);
 
 }
 
@@ -174,13 +155,15 @@ AttitudeController::pid_attenuations(float tpa_breakpoint, float tpa_rate)
 
 void
 AttitudeController::controlRates(const float &dt) {
+
+
     /* reset integral if disarmed */
     if (!_mode.is_armed) {
         _ctrl_status.rates_int.zero();
     }
 
-    if(_mode.mode == Controller::CONTROL_MODE::Acro) {
-        Vector3f acro_rate_sp(
+    if(_mode.mode == AController::CONTROL_MODE::Acro) {
+        matrix::Vector3f acro_rate_sp(
                 math::superexpo(_rates_sp.rpy(0), _limits.acro_expo_r, _limits.acro_superexpo_r),
                 math::superexpo(_rates_sp.rpy(1), _limits.acro_expo_py, _limits.acro_superexpo_py),
                 math::superexpo(_rates_sp.rpy(2), _limits.acro_expo_py, _limits.acro_superexpo_py));
@@ -188,8 +171,6 @@ AttitudeController::controlRates(const float &dt) {
 
     }
 
-//    PX4_INFO("Rates SP %f, %f, %f, %f", (double)_rates_sp.rpy(0), (double)_rates_sp.rpy(1),
-//                 (double)_rates_sp.rpy(2), (double)_rates_sp.thrust);
     /* TPA - Throttle PID Attenuation: Attenuates PID gains beyond a certain throttle to reduce oscillation
      * TODO: Remove for now, revisit if necessary
      * */
@@ -197,92 +178,106 @@ AttitudeController::controlRates(const float &dt) {
 //    Vector3f rates_i_scaled = _gains.rate_i.emult(pid_attenuations(_gains._tpa_breakpoint_i, _gains._tpa_rate_i));
 //    Vector3f rates_d_scaled = _gains.rate_d.emult(pid_attenuations(_gains._tpa_breakpoint_d, _gains._tpa_rate_d));
 
-    /* For now we don't TPA */
-    Vector3f rates_p_scaled = _gains.rate_p;
-//    Vector3f rates_i_scaled = _gains.rate_i;
-    Vector3f rates_d_scaled = _gains.rate_d;
-
     /* angular rates error */
-    Vector3f rates_err = _rates_sp.rpy - _state.rates.rpy;
-//
-//    PX4_INFO("Rates Error %f, %f, %f", (double)rates_err(0), (double)rates_err(1),
-//             (double)rates_err(2));
+    matrix::Vector3f rates_err = _rates_sp.rpy - _state.rates.rpy;
 
+    // TODO: Add low pass filter later
     /* Apply low-pass filtering to the rates for D-term */
-    Vector3f rates_filtered(
+    matrix::Vector3f rates_filtered(
             _filters[0].apply(_state.rates.rpy(0)),
             _filters[1].apply(_state.rates.rpy(1)),
             _filters[2].apply(_state.rates.rpy(2)));
 
-    _rates_actuator_u = rates_p_scaled.emult(rates_err) +
-                        _ctrl_status.rates_int -
-                        rates_d_scaled.emult(rates_filtered - _ctrl_status.rates_prev_filtered) / dt +
-                        _gains.rate_ff.emult(_rates_sp.rpy);
+    _tau_sp = _gains.rate_p.emult(rates_err)
+            + _ctrl_status.rates_int
+//          -  _gains.rate_d.emult(rates_filtered - _ctrl_status.rates_prev_filtered) / dt
+            + _gains.rate_d.emult(rates_err) / dt
+            + _gains.rate_ff.emult(_rates_sp.rpy);
 
     _ctrl_status.rates_prev = _state.rates.rpy;
-    _ctrl_status.rates_prev_filtered = rates_filtered;
+//    _ctrl_status.rates_prev_filtered = rates_filtered;
 
     _filters[0].reset(_ctrl_status.rates_prev(0));
     _filters[1].reset(_ctrl_status.rates_prev(1));
     _filters[2].reset(_ctrl_status.rates_prev(2));
 
-    limitSaturation();
 
-    /* explicitly limit the integrator state */
+    /* Limit Tau Rates  */
     for (int i = AXIS_INDEX_ROLL; i < AXIS_COUNT; i++) {
-        _ctrl_status.rates_int(i) = math::constrain(_ctrl_status.rates_int(i),
-                                                    -_ctrl_status.rate_int_lim(i), _ctrl_status.rate_int_lim(i));
+        _tau_sp(i) = math::constrain(_tau_sp(i), -_limits.tau_max_sp(i), _limits.tau_max_sp(i));
     }
+
+    for (int i = AXIS_INDEX_ROLL; i < AXIS_COUNT; i++) {
+        /* Update integral only if some torque above min value and no torque saturation
+         * TODO: Change saturation to dynamic looking at motor saturation vs p gain max saturation and clamping */
+        
+        if (((i == AXIS_INDEX_ROLL && (fabs(_tau_sp(i)) > 0.005)) || // TODO: make this a param
+            ((i > AXIS_INDEX_ROLL) && (fabs(_tau_sp(i)) > 0.1))) &&
+            _tau_sp(i) > -_limits.tau_max_sp(i) && _tau_sp(i) < _limits.tau_max_sp(i)) {
+
+            float rate_i = _ctrl_status.rates_int(i) + _gains.rate_i(i) + rates_err(i) * dt;
+
+            if (PX4_ISFINITE(rate_i) && rate_i > -_ctrl_status.rate_int_lim(i) && rate_i <
+                                                                                  _ctrl_status.rate_int_lim(i)) {
+                _ctrl_status.rates_int(i) = rate_i;
+            }
+        }
+        else{
+
+        }
+    }
+
+    compensateThrusterDynamics();
 
     mixOutput();
 
-    compensateThrusterDynamics(dt);
 }
 
+
+/**
+ * Scale throttle (commanded thrust) and torques force setpoints to motor speed sp
+ * and then to normalized voltage sp
+ * Input: actuator tau vector (_tau_sp)
+ * Output: actuator scaled voltage (PWM) setpoint (_compensated_tau_sp)
+ * @param dt
+ */
 void
-AttitudeController::limitSaturation() {
+AttitudeController::compensateThrusterDynamics() {
 
-    /* TODO: Adjust for dolphin - I don't have a stationary zone like an aerial vehicle, and I compensate for the thruster deadzone
- * so it doesn't match this here. Instead
- *
- * update integral only if motors are providing enough thrust to be effective */
-//    if (_rates_sp.thrust > MIN_TAKEOFF_THRUST) {
-//        for (int i = AXIS_INDEX_ROLL; i < AXIS_COUNT; i++) {
-//            // Check for positive control saturation
-//            bool positive_saturation =
-//                    ((i == AXIS_INDEX_ROLL) && _saturation_status.flags.roll_pos) ||
-//                    ((i == AXIS_INDEX_PITCH) && _saturation_status.flags.pitch_pos) ||
-//                    ((i == AXIS_INDEX_YAW) && _saturation_status.flags.yaw_pos);
-//
-//            // Check for negative control saturation
-//            bool negative_saturation =
-//                    ((i == AXIS_INDEX_ROLL) && _saturation_status.flags.roll_neg) ||
-//                    ((i == AXIS_INDEX_PITCH) && _saturation_status.flags.pitch_neg) ||
-//                    ((i == AXIS_INDEX_YAW) && _saturation_status.flags.yaw_neg);
-//
-//            // prevent further positive control saturation
-//            if (positive_saturation) {
-//                rates_err(i) = math::min(rates_err(i), 0.0f);
-//            }
-//
-//            // prevent further negative control saturation
-//            if (negative_saturation) {
-//                rates_err(i) = math::max(rates_err(i), 0.0f);
-//            }
-//
-//            // Perform the integration using a first order method and do not propagate the result if out of range or invalid
-//            float rate_i = _rates_int(i) + rates_i_scaled(i) * rates_err(i) * dt;
-//
-//            if (PX4_ISFINITE(rate_i) && rate_i > -_rate_int_lim(i) && rate_i < _rate_int_lim(i)) {
-//                _rates_int(i) = rate_i;
-//            }
-//        }
-//    }
+    float thrust_V_, roll_V_, pitch_V_, yaw_V_;
 
+    /* Convert RPY Torque Sp to motor Hz */
+    float roll_T_    = _tau_sp(0) / _rotor_count;
+    float pitch_F_   = _tau_sp(1) / ( _rotor_count * _constants.rotor_radius);
+    float yaw_F_     = _tau_sp(2) / ( _rotor_count * _constants.rotor_radius);
+
+    float roll_Hz_   = AController::poly_abs_discontinuos(_constants.nTorque_coefficients, roll_T_);
+    float pitch_Hz_  = AController::poly_abs_discontinuos(_constants.nThrust_coefficients, pitch_F_);
+    float yaw_Hz_    = AController::poly_abs_discontinuos(_constants.nThrust_coefficients, yaw_F_);
+
+//    std::cout << " Roll Hz: " << roll_T_ << " Pitch Hz: " << pitch_F_ << " Yaw T: " << yaw_F_ << std::endl;
+
+    /* Convert RPY Hz to Voltage Sp */
+    roll_V_   = AController::poly_abs_discontinuos(_constants.Vn_coefficients, roll_Hz_);
+    pitch_V_  = AController::poly_abs_discontinuos(_constants.Vn_coefficients, pitch_Hz_);
+    yaw_V_    = AController::poly_abs_discontinuos(_constants.Vn_coefficients, yaw_Hz_);
+
+    /* Linearize Throttle sp */
+    thrust_V_ = AController::poly_abs_discontinuos(_constants.Vn_norm_coefficients, _rates_sp.thrust) ;
+
+    /* Normalized by dividing by nominal batt voltage TODO: Check that this logic is correct */
+
+    _compensated_V_sp(0) = roll_V_      / _state.power.bat_V_nom;
+    _compensated_V_sp(1) = pitch_V_     / _state.power.bat_V_nom;
+    _compensated_V_sp(2) = yaw_V_       / _state.power.bat_V_nom;
+    _compensated_V_sp(3) = thrust_V_;
+    // TODO: compensate properly for bat voltage
 
 }
+
 
 void AttitudeController::mixOutput() {
+
     /***
   * Mixing strategy: adopted from mixer_multirotor.cpp
   * 1) Mix pitch, yaw and thrust without roll. And calculate max and min outputs
@@ -292,14 +287,15 @@ void AttitudeController::mixOutput() {
   * 5) Scale all output to range [-1, 1]
   * */
 
-    float roll = math::constrain(_rates_actuator_u(0), -1.0f, 1.0f);
-    float pitch = math::constrain(_rates_actuator_u(1), -1.0f, 1.0f);
-    float yaw = math::constrain(_rates_actuator_u(2), -1.0f, 1.0f);
-    float thrust = math::constrain(_rates_sp.thrust, -1.0f, 1.0f);
-    float min_out = 1.0f;
-    float max_out = -1.0f;
+    float roll = math::constrain(_compensated_V_sp(0), -1.0f, 1.0f);
+    float pitch = math::constrain(_compensated_V_sp(1), -1.0f, 1.0f);
+    float yaw = math::constrain(_compensated_V_sp(2), -1.0f, 1.0f);
+    float thrust = math::constrain(_compensated_V_sp(3), -1.0f, 1.0f);
+    float min_out = 1.00000f;
+    float max_out = -1.00000f;
 
-    PX4_INFO("u Roll %f, Pitch %f, Yaw %f", (double) roll, (double) pitch, (double) yaw);
+
+    //    PX4_INFO("u Roll %f, Pitch %f, Yaw %f", (double) roll, (double) pitch, (double) yaw);
     /*** TODO: Understand how to translate the code to scale to forward and reverse motion.
      * I think the attitude is independent and will scale just fine with motor reverses, well assuming bidirectional
      * equality in thrust power per rotor. But here in att control I should just receive thrust command as a range from
@@ -391,7 +387,7 @@ void AttitudeController::mixOutput() {
                                 fabs(thrust_increase_factor * thrust - thrust));
         pitch_yaw_scale = (thrust + boost) / (thrust - (min_out - low_bound));
     } else {
-        PX4_WARN("Mixing Error");
+//        PX4_WARN("Mixing Error");
     }
 
     /*
@@ -405,7 +401,7 @@ void AttitudeController::mixOutput() {
     for (unsigned i = 0; i < _rotor_count; i++) {
         /* Mix now with boost, pitch_yaw scale and roll */
         pitch_yaw_mix[i] = (pitch * _rotors[i].pitch_scale + yaw * _rotors[i].yaw_scale) * pitch_yaw_scale;
-        PX4_INFO("PitchYaw Mix %f", (double)pitch_yaw_mix[i]);
+//        PX4_INFO("PitchYaw Mix %f", (double)pitch_yaw_mix[i]);
         float out = pitch_yaw_mix[i] +
                     roll * _rotors[i].roll_scale +
                     (thrust + thrust_increase - thrust_reduction) + boost;
@@ -459,74 +455,17 @@ void AttitudeController::mixOutput() {
     }
 
 //    PX4_INFO("Roll %f, Roll %f, Roll %f", (double) roll, (double) pitch, (double) yaw);
-
-  _mixed_actuator_u(0) = outputs[0];
-  _mixed_actuator_u(1) = outputs[1];
-  _mixed_actuator_u(2) = outputs[2];
-  _mixed_actuator_u(3) = outputs[3];
-  _mixed_actuator_u(0) = 0.2f;
-  _mixed_actuator_u(1) = -0.2f;
-  _mixed_actuator_u(2) = -0.2f;
-  _mixed_actuator_u(3) = 0.2f;
-  PX4_INFO("Mixed Output %f, %f, %f, %f", (double)_mixed_actuator_u(0), (double)_mixed_actuator_u(1),
-           (double)_mixed_actuator_u(2), (double)_mixed_actuator_u(3));
+    _mixed_u.actuator(0) = outputs[0];
+    _mixed_u.actuator(1) = outputs[1];
+    _mixed_u.actuator(2) = outputs[2];
+    _mixed_u.actuator(3) = outputs[3];
+//    _mixed_u.actuator(0) = -0.641797423;
+//    _mixed_u.actuator(1) = 0.970197439;
+//    _mixed_u.actuator(2) = -0.641797423 ;
+//    _mixed_u.actuator(3) = 0.970197439 ;
 }
 
-void
-AttitudeController::compensateThrusterDynamics(const float &dt) {
 
-    /*
- * TODO: After evaluating my own thrusters, change this to suit model better. for now keep as is.
- * TODO: Confirm where thrust_factor is set, if it doesn't cascade to here, then just set it here or make a
- * module param.
- *
-  implement simple model for static relationship between applied motor pwm and motor thrust
-  model: thrust = (1 - _thrust_factor) * PWM + _thrust_factor * PWM^2
-  this model assumes normalized input / output in the range [0,1] so this is the right place
-  to do it as at this stage the outputs are in that range.
-  // TODO: This model needs to change to reflect the face that I'm using a bidrectional thrust.
-  // A reverse scaler must be used that is different than the forward one, since non-symmetrical thrust
-  // TODO: I need to split this, if an output (+) use one equation, if (-) use equation for reverse thrust and
-  add sign.
- */
-
-//    auto _thrust_factor = 1.0f;
-//    auto _idle_speed = .1f;
-//
-//    if (_thrust_factor > 0.0f) {
-//        float _output = outputs[i];
-//        if(_output > 0.0f){
-//            _output = -(1.0f - _thrust_factor) /
-//                      (2.0f * _thrust_factor) + sqrtf((1.0f - _thrust_factor) *
-//                                                      (1.0f - _thrust_factor) /
-//                                                      (4.0f * _thrust_factor * _thrust_factor) + (_output / _thrust_factor));
-//            _output = math::constrain(_idle_speed + (_output * (1.0f - _idle_speed)), 0.0f, 1.0f);
-//            outputs[i] = _output;
-//        }
-//        else if (_output < 0.0f){
-//            _output = - _output; // Work with positive
-//            _output = -(1.0f - _thrust_factor) /
-//                      (2.0f * _thrust_factor) + sqrtf((1.0f - _thrust_factor) *
-//                                                      (1.0f - _thrust_factor) /
-//                                                      (4.0f * _thrust_factor * _thrust_factor) + (_output / _thrust_factor));
-//            _output = math::constrain(_idle_speed + (_output * (1.0f - _idle_speed)), 0.0f, 1.0f);
-//            outputs[i] = - _output; // Bring back the sign
-//        }
-//
-//    }
-
-
-
-    /* Battery Voltage Compensation */
-//    /* scale effort by battery status TODO: change this with my model */
-//    if (_state.power.bat_scale_en && _state.power.bat_scale_mA > 0.0f) {
-//        for (int i = 0; i < 4; i++) {
-//            _compensated_u.actuator(i) *= _state.power.bat_scale_mA;
-//        }
-//    }
-
-    _compensated_u.actuator = _mixed_actuator_u;
-}
 
 
 
