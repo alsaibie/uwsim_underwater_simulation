@@ -4,5 +4,5 @@
     <arg name="input_topic" default="/$(arg namespace)/thrusters_input" />
     <arg name="output_topic" default="/$(arg namespace)/uwsim/pose_sp" />
     <node name="uwsim_dynamics" pkg="uwsim_dynamics" type="uwsim_dynamics"
-		  args="$(arg input_topic) $(arg output_topic)" output="screen" respawn="false"/>
+		  args="$(arg input_topic) $(arg output_topic)" output="screen" respawn="false" launch-prefix="xterm -e gdb --args" />
 </launch>

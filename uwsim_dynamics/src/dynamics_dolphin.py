@@ -79,6 +79,7 @@ class Dynamics:
         return Ma + MRB
 
     def damping_matrix(self):
+
         # Linear Hydrodynamic Damping Coefficients
         Xu = self.damping[0]
         Yv = self.damping[1]
@@ -96,6 +97,7 @@ class Dynamics:
         Kpp = self.quadratic_damping[3]  # [Kg*m*m]
         Mqq = self.quadratic_damping[4]  # [Kg*m*m]
         Nrr = self.quadratic_damping[5]  # [Kg*m*m]
+
         # rospy.logdebug(shape(self.v))
         d = diag([-Xu - Xuu * abs(self.v[0]),
                   -Yv - Yvv * abs(self.v[1]),
@@ -103,6 +105,7 @@ class Dynamics:
                   -Kp - Kpp * abs(self.v[3]),
                   -Mq - Mqq * abs(self.v[4]),
                   -Nr - Nrr * abs(self.v[5])])
+
         return d
 
     def coriolis_matrix(self):

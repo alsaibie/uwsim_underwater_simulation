@@ -13,122 +13,150 @@ Dynamics_Node::Dynamics_Node():
         // TODO: abstract vehicle name in launch file
         _vehicle_name(std::string("dolphin")),
         _v_thrusters_input_sub( _nh.subscribe("/dolphin/dynamics/thruster_inputs", 1, &Dynamics_Node::thrusters_input_callback, this)),
+        _state_control_sub( _nh.subscribe("/dolphin/dynamics/state_control", 1, &Dynamics_Node::state_control_callback, this)),
         _v_uwsim_pose_ros_pub( _nh.advertise<geometry_msgs::Pose>("/dolphin/uwsim/pose_sp", 1)),
         _v_full_state_ros_pub( _nh.advertise<uwsim_msgs::full_state>("/dolphin/dynamics/full_state", 1)),
-        _v_power_ros_pub(_nh.advertise<uwsim_msgs::power>("/dolphin/dynamics/power", 1))
+        _v_power_ros_pub(_nh.advertise<uwsim_msgs::power>("/dolphin/dynamics/power", 1)),
+        _v_dyn_param_ros_pub(_nh.advertise<uwsim_msgs::dynamics_param>("/dolphin/dynamics/parameters", 1))
 {
 
     /* Get Parameters */
     _vehicle_name = "dolphin";
-    _nh.getParam(_vehicle_name + "/dynamics" + "/diffq_period", _diffq_period);
-    _nh.getParam(_vehicle_name + "/dynamics" + "/uwsim_period", _uwsim_period);
-    _nh.getParam(_vehicle_name + "/dynamics" + "/mass", _mass);
-    _nh.getParam(_vehicle_name + "/dynamics" + "/gravity_center", _rG);
-    _nh.getParam(_vehicle_name + "/dynamics" + "/buoyancy_center", _rB);
-    _nh.getParam(_vehicle_name + "/dynamics" + "/g", _g);
-    _nh.getParam(_vehicle_name + "/dynamics" + "/radius", _radius);
-    _nh.getParam(_vehicle_name + "/dynamics" + "/tensor", _tensor);
-    _nh.getParam(_vehicle_name + "/dynamics" + "/damping", _damping);
-    _nh.getParam(_vehicle_name + "/dynamics" + "/quadratic_damping", _quadratic_damping);
-    _nh.getParam(_vehicle_name + "/dynamics" + "/dzv", _dzv);
-    _nh.getParam(_vehicle_name + "/dynamics" + "/dv", _dv);
-    _nh.getParam(_vehicle_name + "/dynamics" + "/dh", _dh);
-    _nh.getParam(_vehicle_name + "/dynamics" + "/density", _density);
-    _nh.getParam(_vehicle_name + "/num_actuators", _num_actuators);
-    _nh.getParam(_vehicle_name + "/dynamics" + "/actuators_kf", _kF_coefficients);
-    _nh.getParam(_vehicle_name + "/dynamics" + "/actuators_km", _kM_coefficients);
-    _nh.getParam(_vehicle_name + "/dynamics" + "/actuators_kV", _kV_coefficients);
-    _nh.getParam(_vehicle_name + "/dynamics" + "/actuators_kI", _kI_coefficients);
-    _nh.getParam(_vehicle_name + "/dynamics" + "/actuators_radius", _actuators_r);
-    _nh.getParam(_vehicle_name + "/dynamics" + "/actuators_tconst", _actuators_tconst);
-    _nh.getParam(_vehicle_name + "/dynamics" + "/actuators_maxsat", _actuators_maxsat);
-    _nh.getParam(_vehicle_name + "/dynamics" + "/actuators_minsat", _actuators_minsat);
-    _nh.getParam(_vehicle_name + "/dynamics" + "/actuators_inversion", _actuators_dir_inversion);
-    _nh.getParam(_vehicle_name + "/dynamics" + "/actuators_pwm", _actuators_pwm_range);
-    _nh.getParam(_vehicle_name + "/battery" + "/vcut", _bat_c_vcut);
-    _nh.getParam(_vehicle_name + "/battery" + "/vmax", _bat_c_vmax);
-    _nh.getParam(_vehicle_name + "/battery" + "/ESR", _bat_esr);
-    _nh.getParam(_vehicle_name + "/battery" + "/discharge_K", _kBd_coefficients);
-    _nh.getParam(_vehicle_name + "/battery" + "/cell_n", _bat_cell_n);
-    _nh.getParam(_vehicle_name + "/battery" + "/capacity_mAh", _bat_mAh);
-    _nh.getParam(_vehicle_name + "/dynamics" + "/initial_pose", _p_initial);
-    _nh.getParam(_vehicle_name + "/dynamics" + "/initial_v", _v_initial);
 
-    _auv_dyn = new AUVDynamics();
+    uwsim::get_param<double>             (_nh, _diffq_period );
+    uwsim::get_param<double>             (_nh, _pub_period );
 
+    uwsim::get_param<double>         (_nh, _mass );
+    uwsim::get_param<vector<double>> (_nh, _rG );
+    uwsim::get_param<vector<double>> (_nh, _rB );
+    uwsim::get_param<double>         (_nh, _g );
+    uwsim::get_param<vector<double>> (_nh, _radius );
+    uwsim::get_param<vector<double>> (_nh, _tensor );
+
+    uwsim::get_param<vector<double>> (_nh, _ksurge_coefficients );
+    uwsim::get_param<vector<double>> (_nh, _ksway_coefficients );
+    uwsim::get_param<vector<double>> (_nh, _kheave_coefficients );
+    uwsim::get_param<vector<double>> (_nh, _kroll_coefficients );
+    uwsim::get_param<vector<double>> (_nh, _kpitch_coefficients );
+    uwsim::get_param<vector<double>> (_nh, _kyaw_coefficients );
+
+    uwsim::get_param<double> (_nh, _density );
+
+    uwsim::get_param<int>            (_nh, _num_actuators );
+    uwsim::get_param<vector<double>> (_nh, _kF_coefficients );
+    uwsim::get_param<vector<double>> (_nh, _kM_coefficients );
+    uwsim::get_param<vector<double>> (_nh, _kV_coefficients );
+    uwsim::get_param<vector<double>> (_nh, _kI_coefficients );
+    uwsim::get_param<double>         (_nh, _actuators_r );
+    uwsim::get_param<double>         (_nh, _actuators_tconst );
+    uwsim::get_param<double>         (_nh, _actuators_maxsat );
+    uwsim::get_param<double>         (_nh, _actuators_minsat );
+    uwsim::get_param<vector<int>>    (_nh, _actuators_dir_inversion );
+    uwsim::get_param<vector<int>>    (_nh, _actuators_pwm_range );
+
+    uwsim::get_param<vector<double>> (_nh, _kBd_coefficients );
+    uwsim::get_param<double>         (_nh, _bat_c_vmax );
+    uwsim::get_param<double>         (_nh, _bat_c_vcut );
+    uwsim::get_param<double>         (_nh, _bat_esr );
+    uwsim::get_param<double>         (_nh, _bat_cell_n );
+    uwsim::get_param<int>            (_nh, _bat_mAh );
+
+    uwsim::get_param<vector<double>> (_nh, _p_initial );
+    uwsim::get_param<vector<double>> (_nh, _v_initial );
+
+    cout << "Test:" << _p_initial.second[0] <<endl;
+    _auv_dyn = new Dynamics::AUVDynamics();
     set_parameters();
+    _auv_dyn->initialize();
 
     /* And we start node*/
-
     start();
 }
 
-void Dynamics_Node::reset() {
-    /* Initial State */
-    Dynamics::States state_;
-    state_.pos <<_p_initial[0], _p_initial[1], _p_initial[2];
-    state_.att.orientation << _p_initial[3], _p_initial[4], _p_initial[5];
-    state_.att.orientation_q = Dynamics::euler2Quaterniond(state_.att.orientation);
-    state_.vel << _v_initial[0], _v_initial[1], _v_initial[2], _v_initial[3], _v_initial[4], _v_initial[5];
-    state_.power.bat_vnom = _bat_cell_n * _bat_c_vmax;
-    _auv_dyn->setInitialState(state_);
-}
 
 void Dynamics_Node::set_parameters(void){
 
     Dynamics::Constants constants_;
 
-    constants_.inertia.mass = _mass;
-    constants_.inertia.tensor << _tensor[0], _tensor[1], _tensor[2],
-                                _tensor[3], _tensor[4], _tensor[5],
-                                _tensor[6], _tensor[7], _tensor[8];
-    constants_.inertia.g = _g;
-    constants_.inertia.radius <<_radius[0], _radius[1], _radius[2];
-    constants_.inertia.rB << _rB[0], _rB[1], _rB[2];
-    constants_.inertia.rG << _rG[0], _rG[1], _rG[2];
+    constants_.inertia.mass = _mass.second;
+    constants_.inertia.tensor << _tensor.second[0], _tensor.second[1], _tensor.second[2],
+            _tensor.second[3], _tensor.second[4], _tensor.second[5],
+            _tensor.second[6], _tensor.second[7], _tensor.second[8];
+    constants_.inertia.g = _g.second;
+    constants_.inertia.radius <<_radius.second[0], _radius.second[1], _radius.second[2];
+    constants_.inertia.rB << _rB.second[0], _rB.second[1], _rB.second[2];
+    constants_.inertia.rG << _rG.second[0], _rG.second[1], _rG.second[2];
 
-    constants_.damping.damping << _damping[0], _damping[1], _damping[2], _damping[3], _damping[4], _damping[5];
-    constants_.damping.q_damping << _quadratic_damping[0], _quadratic_damping[1], _quadratic_damping[2],
-            _quadratic_damping[3], _quadratic_damping[4], _quadratic_damping[5];
-    constants_.damping.dh = _dh;
-    constants_.damping.dv = _dv;
-    constants_.damping.dzv = _dzv;
+    constants_.damping.ksurge << _ksurge_coefficients.second[0], _ksurge_coefficients.second[1],
+            _ksurge_coefficients.second[2];
+    constants_.damping.ksway << _ksway_coefficients.second[0], _ksway_coefficients.second[1],
+            _ksway_coefficients.second[2];
+    constants_.damping.kheave << _kheave_coefficients.second[0], _kheave_coefficients.second[1],
+            _kheave_coefficients.second[2];
+    constants_.damping.kroll << _kroll_coefficients.second[0], _kroll_coefficients.second[1],
+            _kroll_coefficients.second[2];
+    constants_.damping.kpitch << _kpitch_coefficients.second[0], _kpitch_coefficients.second[1],
+            _kpitch_coefficients.second[2];
+    constants_.damping.kyaw << _kyaw_coefficients.second[0], _kyaw_coefficients.second[1],
+            _kyaw_coefficients.second[2];
 
-    constants_.actuator.L = _actuators_r;
-    constants_.actuator.kf << _kF_coefficients[0], _kF_coefficients[1], _kF_coefficients[2];
-    constants_.actuator.km << _kM_coefficients[0], _kM_coefficients[1], _kM_coefficients[2];
-    constants_.actuator.kv << _kV_coefficients[0], _kV_coefficients[1], _kV_coefficients[2];
-    constants_.actuator.count  = _num_actuators;
-    constants_.actuator.maxsat = _actuators_maxsat;
-    constants_.actuator.minsat = _actuators_minsat;
-    constants_.actuator.tconst = _actuators_tconst;
-    constants_.actuator.pwm_range << _actuators_pwm_range[0], _actuators_pwm_range[1], _actuators_pwm_range[2];
-    constants_.actuator.dir_inversion << _actuators_dir_inversion[0], _actuators_dir_inversion[1],
-            _actuators_dir_inversion[2], _actuators_dir_inversion[3];
+    constants_.actuator.L = _actuators_r.second;
+    constants_.actuator.kf << _kF_coefficients.second[0], _kF_coefficients.second[1], _kF_coefficients.second[2];
+    constants_.actuator.km << _kM_coefficients.second[0], _kM_coefficients.second[1], _kM_coefficients.second[2];
+    constants_.actuator.kv << _kV_coefficients.second[0], _kV_coefficients.second[1], _kV_coefficients.second[2];
+    constants_.actuator.count  = _num_actuators.second;
+    constants_.actuator.maxsat = _actuators_maxsat.second;
+    constants_.actuator.minsat = _actuators_minsat.second;
+    constants_.actuator.tconst = _actuators_tconst.second;
+    constants_.actuator.pwm_range << _actuators_pwm_range.second[0], _actuators_pwm_range.second[1], _actuators_pwm_range.second[2];
+    constants_.actuator.dir_inversion << _actuators_dir_inversion.second[0], _actuators_dir_inversion.second[1],
+            _actuators_dir_inversion.second[2], _actuators_dir_inversion.second[3];
 
-    constants_.battery.c_vcut = _bat_c_vcut;
-    constants_.battery.cell_n = _bat_cell_n;
-    constants_.battery.c_vmax = _bat_c_vmax;
-    constants_.battery.esr = _bat_esr;
-    constants_.battery.mAh = _bat_mAh;
-    constants_.battery.ki  << _kI_coefficients[0], _kI_coefficients[1], _kI_coefficients[2];
-    constants_.battery.kBd << _kBd_coefficients[0], _kBd_coefficients[1], _kBd_coefficients[2];
+    constants_.battery.c_vcut = _bat_c_vcut.second;
+    constants_.battery.cell_n = _bat_cell_n.second;
+    constants_.battery.c_vmax = _bat_c_vmax.second;
+    constants_.battery.esr = _bat_esr.second;
+    constants_.battery.mAh = _bat_mAh.second;
+    constants_.battery.ki  << _kI_coefficients.second[0], _kI_coefficients.second[1], _kI_coefficients.second[2], _kI_coefficients.second[3];
+    constants_.battery.kBd << _kBd_coefficients.second[0], _kBd_coefficients.second[1], _kBd_coefficients.second[2],
+            _kBd_coefficients.second[3], _kBd_coefficients.second[4], _kBd_coefficients.second[5];
 
-    constants_.environment.density = _density;
+    constants_.environment.density = _density.second;
 
     _auv_dyn->setConstants(constants_);
 
     reset();
+
+
 }
 
+void Dynamics_Node::reset(){
+    /* Initial Dynamic States */
+    Dynamics::States state_ = _auv_dyn->getStates();
+    state_.pos <<_p_initial.second[0], _p_initial.second[1], _p_initial.second[2];
+    state_.att.orientation << _p_initial.second[3], _p_initial.second[4], _p_initial.second[5];
+    state_.att.orientation_q = Dynamics_Math::euler2Quaterniond(state_.att.orientation);
+    state_.vel << _v_initial.second[0], _v_initial.second[1], _v_initial.second[2],
+            _v_initial.second[3], _v_initial.second[4], _v_initial.second[5];
+    state_.power.bat_vnom = _bat_cell_n.second * _bat_c_vmax.second;
+    _auv_dyn->setInitialState(state_);
+}
 
 void Dynamics_Node::thrusters_input_callback(const std_msgs::Float64MultiArray::ConstPtr &thruster_msg) {
 
     static Dynamics::Inputs input_;
-    for (int k = 0; k < _num_actuators; k++){
+    for (int k = 0; k < _num_actuators.second; k++){
         input_.w_pwm(k) = thruster_msg->data[k];
     }
     _auv_dyn->setInput(input_);
+}
+
+void Dynamics_Node::state_control_callback(const uwsim_msgs::state_control::ConstPtr &control_msg){
+    if(control_msg->reset_dynamics){
+        /* reset dynamic simulation */
+        ROS_INFO("Resetting Dynamic Simulator");
+        reset();
+    }
 }
 
 
@@ -142,9 +170,23 @@ void Dynamics_Node::pub_uwsim_pose_state(void) {
     _v_uwsim_pose_ros_pub.publish(_uwsim_pose_sp_msg);
 }
 
+void Dynamics_Node::pub_uwsim_dyn_param(void) {
+
+    Dynamics::DynamicParameters params_ = _auv_dyn->getDynamicParameters();
+    for (int k=0; k<6; k++){
+        _uwsim_dyn_param_msg.coriolis_vector[k] = params_.Cvv(k);
+        _uwsim_dyn_param_msg.damping_vector[k] = params_.Dvv(k);
+        _uwsim_dyn_param_msg.tau[k] = params_.tau(k);
+        _uwsim_dyn_param_msg.gravity_vector[k] = params_.gRB(k);
+    }
+
+    _v_dyn_param_ros_pub.publish(_uwsim_dyn_param_msg);
+
+}
+
 void Dynamics_Node::start(void) {
 
-    ros::Rate r_(1 / _diffq_period);
+    ros::Rate r_(1 / _diffq_period.second);
     ros::Time begin_ = ros::Time::now();
     double time_now_ = (ros::Time::now() - begin_).toSec();
     double last_uwsim_pub_sec_ = time_now_;
@@ -161,7 +203,7 @@ void Dynamics_Node::start(void) {
 
         /* Publish msgs */
         double state_pub_dt_sec_ = time_now_ - last_uwsim_pub_sec_;
-        if (state_pub_dt_sec_ != 0 && state_pub_dt_sec_ > _uwsim_period){
+        if (state_pub_dt_sec_ != 0 && state_pub_dt_sec_ > _pub_period.second){
 
             Dynamics::States state_ = _auv_dyn->getStates();
 
@@ -184,17 +226,20 @@ void Dynamics_Node::start(void) {
             _state24_msg.p_q[6] = _uwsim_pose_sp_msg.orientation.z = state_.att.orientation_q.z();
 
             _power_msg.V   = state_.power.bat_vnom;
-            _power_msg.I   = state_.power.bat_I;
+            _power_msg.I   = state_.power.bat_I_mA;
             _power_msg.percent_remaining = state_.power.bat_percent_remaining;
 
             pub_vehicle_state();
             pub_uwsim_pose_state();
 
+            pub_uwsim_dyn_param();
             last_uwsim_pub_sec_ = time_now_;
         }
         ros::spinOnce();
     }
 }
+
+
 
 
 int main(int argc, char** argv)
