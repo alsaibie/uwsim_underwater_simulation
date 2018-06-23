@@ -1,0 +1,403 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<root>
+ <tabbed_widget parent="main_window" name="Main Window">
+  <plotmatrix tab_name="Dynamic_output" rows="7" columns="1">
+   <plot col="0" row="0">
+    <range right="1051.530397" left="1036.533055" top="14.348367" bottom="-3.993283"/>
+    <limitY/>
+    <curve G="0" name="/dolphin/dynamics/full_state/p_q.0" R="0" B="128"/>
+    <curve G="128" name="/dolphin/dynamics/full_state/p_q.1" R="0" B="128"/>
+    <curve G="160" name="/dolphin/dynamics/full_state/p_q.2" R="160" B="164"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot col="0" row="1">
+    <range right="1051.530397" left="1036.533055" top="0.000109" bottom="-0.004000"/>
+    <limitY/>
+    <curve G="128" name="/dolphin/dynamics/full_state/v.0" R="128" B="0"/>
+    <curve G="0" name="/dolphin/dynamics/full_state/v.1" R="128" B="0"/>
+    <curve G="0" name="/dolphin/dynamics/full_state/v.2" R="0" B="255"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot col="0" row="2">
+    <range right="1051.530397" left="1036.533055" top="0.004019" bottom="-0.004065"/>
+    <limitY/>
+    <curve G="128" name="/dolphin/dynamics/full_state/p_lin_dot.0" R="0" B="0"/>
+    <curve G="0" name="/dolphin/dynamics/full_state/p_lin_dot.1" R="255" B="0"/>
+    <curve G="0" name="/dolphin/dynamics/full_state/p_lin_dot.2" R="255" B="255"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot col="0" row="3">
+    <range right="1051.530397" left="1036.533055" top="0.096427" bottom="-0.096481"/>
+    <limitY/>
+    <curve G="0" name="/dolphin/dynamics/full_state/v_dot.0" R="255" B="0"/>
+    <curve G="0" name="/dolphin/dynamics/full_state/v_dot.1" R="255" B="255"/>
+    <curve G="0" name="/dolphin/dynamics/full_state/v_dot.2" R="0" B="128"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot col="0" row="4">
+    <range right="1051.530397" left="1036.533055" top="0.922079" bottom="-0.950534"/>
+    <limitY/>
+    <curve G="0" name="/dolphin/dynamics/full_state/p_q.3" R="0" B="128"/>
+    <curve G="128" name="/dolphin/dynamics/full_state/p_q.4" R="0" B="128"/>
+    <curve G="160" name="/dolphin/dynamics/full_state/p_q.5" R="160" B="164"/>
+    <curve G="128" name="/dolphin/dynamics/full_state/p_q.6" R="128" B="0"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot col="0" row="5">
+    <range right="1051.530397" left="1036.533055" top="0.550447" bottom="-0.563873"/>
+    <limitY/>
+    <curve G="0" name="/dolphin/dynamics/full_state/v.3" R="128" B="0"/>
+    <curve G="0" name="/dolphin/dynamics/full_state/v.4" R="0" B="255"/>
+    <curve G="128" name="/dolphin/dynamics/full_state/v.5" R="0" B="0"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot col="0" row="6">
+    <range right="1051.530397" left="1036.533055" top="0.132878" bottom="-0.102379"/>
+    <limitY/>
+    <curve G="128" name="/dolphin/dynamics/full_state/v_dot.3" R="0" B="128"/>
+    <curve G="160" name="/dolphin/dynamics/full_state/v_dot.4" R="160" B="164"/>
+    <curve G="128" name="/dolphin/dynamics/full_state/v_dot.5" R="128" B="0"/>
+    <transform value="noTransform"/>
+   </plot>
+  </plotmatrix>
+  <plotmatrix tab_name="Sensors" rows="3" columns="1">
+   <plot col="0" row="0">
+    <range right="1042.599093" left="1027.611697" top="10.236928" bottom="-9.167405"/>
+    <limitY/>
+    <curve G="0" name="/dolphin/dynamics/hil_sensor/acc/x" R="0" B="128"/>
+    <curve G="128" name="/dolphin/dynamics/hil_sensor/acc/y" R="0" B="128"/>
+    <curve G="160" name="/dolphin/dynamics/hil_sensor/acc/z" R="160" B="164"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot col="0" row="1">
+    <range right="1042.599093" left="1027.611697" top="0.414777" bottom="-0.569789"/>
+    <limitY/>
+    <curve G="128" name="/dolphin/dynamics/hil_sensor/gyro/x" R="128" B="0"/>
+    <curve G="0" name="/dolphin/dynamics/hil_sensor/gyro/y" R="128" B="0"/>
+    <curve G="0" name="/dolphin/dynamics/hil_sensor/gyro/z" R="0" B="255"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot col="0" row="2">
+    <range right="1042.599093" left="1027.611697" top="1.047598" bottom="-0.970289"/>
+    <limitY/>
+    <curve G="128" name="/dolphin/dynamics/hil_sensor/mag/x" R="0" B="0"/>
+    <curve G="0" name="/dolphin/dynamics/hil_sensor/mag/y" R="255" B="0"/>
+    <curve G="0" name="/dolphin/dynamics/hil_sensor/mag/z" R="255" B="255"/>
+    <transform value="noTransform"/>
+   </plot>
+  </plotmatrix>
+  <plotmatrix tab_name="Dynamic Parameters" rows="5" columns="1">
+   <plot col="0" row="0">
+    <range right="1033.430364" left="1018.431723" top="0.000822" bottom="-0.000843"/>
+    <limitY/>
+    <curve G="0" name="/dolphin/dynamics/parameters/coriolis_vector.0" R="0" B="128"/>
+    <curve G="128" name="/dolphin/dynamics/parameters/coriolis_vector.1" R="0" B="128"/>
+    <curve G="160" name="/dolphin/dynamics/parameters/coriolis_vector.2" R="160" B="164"/>
+    <curve G="128" name="/dolphin/dynamics/parameters/coriolis_vector.3" R="128" B="0"/>
+    <curve G="0" name="/dolphin/dynamics/parameters/coriolis_vector.4" R="128" B="0"/>
+    <curve G="0" name="/dolphin/dynamics/parameters/coriolis_vector.5" R="0" B="255"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot col="0" row="1">
+    <range right="1033.430364" left="1018.431723" top="0.036120" bottom="-0.036120"/>
+    <limitY/>
+    <curve G="128" name="/dolphin/dynamics/parameters/damping_vector.0" R="0" B="0"/>
+    <curve G="0" name="/dolphin/dynamics/parameters/damping_vector.1" R="255" B="0"/>
+    <curve G="0" name="/dolphin/dynamics/parameters/damping_vector.2" R="255" B="255"/>
+    <curve G="0" name="/dolphin/dynamics/parameters/damping_vector.3" R="0" B="128"/>
+    <curve G="128" name="/dolphin/dynamics/parameters/damping_vector.4" R="0" B="128"/>
+    <curve G="160" name="/dolphin/dynamics/parameters/damping_vector.5" R="160" B="164"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot col="0" row="2">
+    <range right="1033.430364" left="1018.431723" top="0.100000" bottom="-0.100000"/>
+    <limitY/>
+    <curve G="0" name="/dolphin/dynamics/parameters/tau.0" R="255" B="0"/>
+    <curve G="0" name="/dolphin/dynamics/parameters/tau.1" R="255" B="255"/>
+    <curve G="0" name="/dolphin/dynamics/parameters/tau.2" R="0" B="128"/>
+    <curve G="128" name="/dolphin/dynamics/parameters/tau.3" R="0" B="128"/>
+    <curve G="160" name="/dolphin/dynamics/parameters/tau.4" R="160" B="164"/>
+    <curve G="128" name="/dolphin/dynamics/parameters/tau.5" R="128" B="0"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot col="0" row="3">
+    <range right="1033.430364" left="1018.431723" top="0.100000" bottom="-0.100000"/>
+    <limitY/>
+    <curve G="128" name="/dolphin/dynamics/parameters/gravity_vector.0" R="0" B="128"/>
+    <curve G="160" name="/dolphin/dynamics/parameters/gravity_vector.1" R="160" B="164"/>
+    <curve G="128" name="/dolphin/dynamics/parameters/gravity_vector.2" R="128" B="0"/>
+    <curve G="0" name="/dolphin/dynamics/parameters/gravity_vector.3" R="128" B="0"/>
+    <curve G="0" name="/dolphin/dynamics/parameters/gravity_vector.4" R="0" B="255"/>
+    <curve G="128" name="/dolphin/dynamics/parameters/gravity_vector.5" R="0" B="0"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot col="0" row="4">
+    <range right="1033.430364" left="1018.431723" top="0.100000" bottom="-0.100000"/>
+    <limitY/>
+    <curve G="0" name="/dolphin/dynamics/parameters/Vnom" R="0" B="255"/>
+    <curve G="128" name="/dolphin/dynamics/parameters/mA_draw" R="128" B="0"/>
+    <curve G="0" name="/dolphin/dynamics/parameters/mAh_consumed" R="128" B="0"/>
+    <transform value="noTransform"/>
+   </plot>
+  </plotmatrix>
+  <plotmatrix tab_name="uwsim_pose" rows="2" columns="1">
+   <plot col="0" row="0">
+    <range right="1034.499806" left="1019.500945" top="0.955465" bottom="-0.897375"/>
+    <limitY/>
+    <curve G="128" name="/dolphin/uwsim/pose_sp/orientation/w" R="0" B="0"/>
+    <curve G="0" name="/dolphin/uwsim/pose_sp/orientation/x" R="255" B="0"/>
+    <curve G="0" name="/dolphin/uwsim/pose_sp/orientation/y" R="255" B="255"/>
+    <curve G="0" name="/dolphin/uwsim/pose_sp/orientation/z" R="0" B="128"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot col="0" row="1">
+    <range right="1034.499806" left="1019.500945" top="14.349481" bottom="-3.993174"/>
+    <limitY/>
+    <curve G="128" name="/dolphin/uwsim/pose_sp/position/x" R="0" B="0"/>
+    <curve G="0" name="/dolphin/uwsim/pose_sp/position/y" R="255" B="0"/>
+    <curve G="0" name="/dolphin/uwsim/pose_sp/position/z" R="255" B="255"/>
+    <transform value="noTransform"/>
+   </plot>
+  </plotmatrix>
+  <plotmatrix tab_name="Thruster_Inputs" rows="1" columns="1">
+   <plot col="0" row="0">
+    <range right="52.569041" left="44.574121" top="1765.173087" bottom="1238.343149"/>
+    <limitY/>
+    <curve G="160" name="/dolphin/dynamics/thruster_inputs/data.0" R="160" B="164"/>
+    <curve G="128" name="/dolphin/dynamics/thruster_inputs/data.1" R="128" B="0"/>
+    <curve G="0" name="/dolphin/dynamics/thruster_inputs/data.2" R="128" B="0"/>
+    <curve G="0" name="/dolphin/dynamics/thruster_inputs/data.3" R="0" B="255"/>
+    <transform value="noTransform"/>
+   </plot>
+  </plotmatrix>
+  <plotmatrix tab_name="Power" rows="3" columns="1">
+   <plot col="0" row="0">
+    <range right="1037.930414" left="1022.935162" top="5.980000" bottom="5.780000"/>
+    <limitY/>
+    <curve G="0" name="/dolphin/dynamics/power/I" R="128" B="0"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot col="0" row="1">
+    <range right="1037.930414" left="1022.935162" top="8.365523" bottom="8.365501"/>
+    <limitY/>
+    <curve G="0" name="/dolphin/dynamics/power/V" R="0" B="255"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot col="0" row="2">
+    <range right="1037.930414" left="1022.935162" top="98.177722" bottom="98.176553"/>
+    <limitY/>
+    <curve G="128" name="/dolphin/dynamics/power/percent_remaining" R="0" B="0"/>
+    <transform value="noTransform"/>
+   </plot>
+  </plotmatrix>
+  <currentPlotMatrix index="0"/>
+ </tabbed_widget>
+ <tabbed_widget parent="main_window" name="Main Window">
+  <plotmatrix tab_name="Dynamic_output" rows="7" columns="1">
+   <plot col="0" row="0">
+    <range right="1051.530397" left="1036.533055" top="14.348367" bottom="-3.993283"/>
+    <limitY/>
+    <curve G="0" name="/dolphin/dynamics/full_state/p_q.0" R="0" B="128"/>
+    <curve G="128" name="/dolphin/dynamics/full_state/p_q.1" R="0" B="128"/>
+    <curve G="160" name="/dolphin/dynamics/full_state/p_q.2" R="160" B="164"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot col="0" row="1">
+    <range right="1051.530397" left="1036.533055" top="0.000109" bottom="-0.004000"/>
+    <limitY/>
+    <curve G="128" name="/dolphin/dynamics/full_state/v.0" R="128" B="0"/>
+    <curve G="0" name="/dolphin/dynamics/full_state/v.1" R="128" B="0"/>
+    <curve G="0" name="/dolphin/dynamics/full_state/v.2" R="0" B="255"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot col="0" row="2">
+    <range right="1051.530397" left="1036.533055" top="0.004019" bottom="-0.004065"/>
+    <limitY/>
+    <curve G="128" name="/dolphin/dynamics/full_state/p_lin_dot.0" R="0" B="0"/>
+    <curve G="0" name="/dolphin/dynamics/full_state/p_lin_dot.1" R="255" B="0"/>
+    <curve G="0" name="/dolphin/dynamics/full_state/p_lin_dot.2" R="255" B="255"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot col="0" row="3">
+    <range right="1051.530397" left="1036.533055" top="0.096427" bottom="-0.096481"/>
+    <limitY/>
+    <curve G="0" name="/dolphin/dynamics/full_state/v_dot.0" R="255" B="0"/>
+    <curve G="0" name="/dolphin/dynamics/full_state/v_dot.1" R="255" B="255"/>
+    <curve G="0" name="/dolphin/dynamics/full_state/v_dot.2" R="0" B="128"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot col="0" row="4">
+    <range right="1051.530397" left="1036.533055" top="0.922079" bottom="-0.950534"/>
+    <limitY/>
+    <curve G="0" name="/dolphin/dynamics/full_state/p_q.3" R="0" B="128"/>
+    <curve G="128" name="/dolphin/dynamics/full_state/p_q.4" R="0" B="128"/>
+    <curve G="160" name="/dolphin/dynamics/full_state/p_q.5" R="160" B="164"/>
+    <curve G="128" name="/dolphin/dynamics/full_state/p_q.6" R="128" B="0"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot col="0" row="5">
+    <range right="1051.530397" left="1036.533055" top="0.550447" bottom="-0.563873"/>
+    <limitY/>
+    <curve G="0" name="/dolphin/dynamics/full_state/v.3" R="128" B="0"/>
+    <curve G="0" name="/dolphin/dynamics/full_state/v.4" R="0" B="255"/>
+    <curve G="128" name="/dolphin/dynamics/full_state/v.5" R="0" B="0"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot col="0" row="6">
+    <range right="1051.530397" left="1036.533055" top="0.132878" bottom="-0.102379"/>
+    <limitY/>
+    <curve G="128" name="/dolphin/dynamics/full_state/v_dot.3" R="0" B="128"/>
+    <curve G="160" name="/dolphin/dynamics/full_state/v_dot.4" R="160" B="164"/>
+    <curve G="128" name="/dolphin/dynamics/full_state/v_dot.5" R="128" B="0"/>
+    <transform value="noTransform"/>
+   </plot>
+  </plotmatrix>
+  <plotmatrix tab_name="Sensors" rows="3" columns="1">
+   <plot col="0" row="0">
+    <range right="1042.599093" left="1027.611697" top="10.236928" bottom="-9.167405"/>
+    <limitY/>
+    <curve G="0" name="/dolphin/dynamics/hil_sensor/acc/x" R="0" B="128"/>
+    <curve G="128" name="/dolphin/dynamics/hil_sensor/acc/y" R="0" B="128"/>
+    <curve G="160" name="/dolphin/dynamics/hil_sensor/acc/z" R="160" B="164"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot col="0" row="1">
+    <range right="1042.599093" left="1027.611697" top="0.414777" bottom="-0.569789"/>
+    <limitY/>
+    <curve G="128" name="/dolphin/dynamics/hil_sensor/gyro/x" R="128" B="0"/>
+    <curve G="0" name="/dolphin/dynamics/hil_sensor/gyro/y" R="128" B="0"/>
+    <curve G="0" name="/dolphin/dynamics/hil_sensor/gyro/z" R="0" B="255"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot col="0" row="2">
+    <range right="1042.599093" left="1027.611697" top="1.047598" bottom="-0.970289"/>
+    <limitY/>
+    <curve G="128" name="/dolphin/dynamics/hil_sensor/mag/x" R="0" B="0"/>
+    <curve G="0" name="/dolphin/dynamics/hil_sensor/mag/y" R="255" B="0"/>
+    <curve G="0" name="/dolphin/dynamics/hil_sensor/mag/z" R="255" B="255"/>
+    <transform value="noTransform"/>
+   </plot>
+  </plotmatrix>
+  <plotmatrix tab_name="Dynamic Parameters" rows="5" columns="1">
+   <plot col="0" row="0">
+    <range right="1033.430364" left="1018.431723" top="0.000822" bottom="-0.000843"/>
+    <limitY/>
+    <curve G="0" name="/dolphin/dynamics/parameters/coriolis_vector.0" R="0" B="128"/>
+    <curve G="128" name="/dolphin/dynamics/parameters/coriolis_vector.1" R="0" B="128"/>
+    <curve G="160" name="/dolphin/dynamics/parameters/coriolis_vector.2" R="160" B="164"/>
+    <curve G="128" name="/dolphin/dynamics/parameters/coriolis_vector.3" R="128" B="0"/>
+    <curve G="0" name="/dolphin/dynamics/parameters/coriolis_vector.4" R="128" B="0"/>
+    <curve G="0" name="/dolphin/dynamics/parameters/coriolis_vector.5" R="0" B="255"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot col="0" row="1">
+    <range right="1033.430364" left="1018.431723" top="0.036120" bottom="-0.036120"/>
+    <limitY/>
+    <curve G="128" name="/dolphin/dynamics/parameters/damping_vector.0" R="0" B="0"/>
+    <curve G="0" name="/dolphin/dynamics/parameters/damping_vector.1" R="255" B="0"/>
+    <curve G="0" name="/dolphin/dynamics/parameters/damping_vector.2" R="255" B="255"/>
+    <curve G="0" name="/dolphin/dynamics/parameters/damping_vector.3" R="0" B="128"/>
+    <curve G="128" name="/dolphin/dynamics/parameters/damping_vector.4" R="0" B="128"/>
+    <curve G="160" name="/dolphin/dynamics/parameters/damping_vector.5" R="160" B="164"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot col="0" row="2">
+    <range right="1033.430364" left="1018.431723" top="0.100000" bottom="-0.100000"/>
+    <limitY/>
+    <curve G="0" name="/dolphin/dynamics/parameters/tau.0" R="255" B="0"/>
+    <curve G="0" name="/dolphin/dynamics/parameters/tau.1" R="255" B="255"/>
+    <curve G="0" name="/dolphin/dynamics/parameters/tau.2" R="0" B="128"/>
+    <curve G="128" name="/dolphin/dynamics/parameters/tau.3" R="0" B="128"/>
+    <curve G="160" name="/dolphin/dynamics/parameters/tau.4" R="160" B="164"/>
+    <curve G="128" name="/dolphin/dynamics/parameters/tau.5" R="128" B="0"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot col="0" row="3">
+    <range right="1033.430364" left="1018.431723" top="0.100000" bottom="-0.100000"/>
+    <limitY/>
+    <curve G="128" name="/dolphin/dynamics/parameters/gravity_vector.0" R="0" B="128"/>
+    <curve G="160" name="/dolphin/dynamics/parameters/gravity_vector.1" R="160" B="164"/>
+    <curve G="128" name="/dolphin/dynamics/parameters/gravity_vector.2" R="128" B="0"/>
+    <curve G="0" name="/dolphin/dynamics/parameters/gravity_vector.3" R="128" B="0"/>
+    <curve G="0" name="/dolphin/dynamics/parameters/gravity_vector.4" R="0" B="255"/>
+    <curve G="128" name="/dolphin/dynamics/parameters/gravity_vector.5" R="0" B="0"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot col="0" row="4">
+    <range right="1033.430364" left="1018.431723" top="0.100000" bottom="-0.100000"/>
+    <limitY/>
+    <curve G="0" name="/dolphin/dynamics/parameters/Vnom" R="0" B="255"/>
+    <curve G="128" name="/dolphin/dynamics/parameters/mA_draw" R="128" B="0"/>
+    <curve G="0" name="/dolphin/dynamics/parameters/mAh_consumed" R="128" B="0"/>
+    <transform value="noTransform"/>
+   </plot>
+  </plotmatrix>
+  <plotmatrix tab_name="uwsim_pose" rows="2" columns="1">
+   <plot col="0" row="0">
+    <range right="1034.499806" left="1019.500945" top="0.955465" bottom="-0.897375"/>
+    <limitY/>
+    <curve G="128" name="/dolphin/uwsim/pose_sp/orientation/w" R="0" B="0"/>
+    <curve G="0" name="/dolphin/uwsim/pose_sp/orientation/x" R="255" B="0"/>
+    <curve G="0" name="/dolphin/uwsim/pose_sp/orientation/y" R="255" B="255"/>
+    <curve G="0" name="/dolphin/uwsim/pose_sp/orientation/z" R="0" B="128"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot col="0" row="1">
+    <range right="1034.499806" left="1019.500945" top="14.349481" bottom="-3.993174"/>
+    <limitY/>
+    <curve G="128" name="/dolphin/uwsim/pose_sp/position/x" R="0" B="0"/>
+    <curve G="0" name="/dolphin/uwsim/pose_sp/position/y" R="255" B="0"/>
+    <curve G="0" name="/dolphin/uwsim/pose_sp/position/z" R="255" B="255"/>
+    <transform value="noTransform"/>
+   </plot>
+  </plotmatrix>
+  <plotmatrix tab_name="Thruster_Inputs" rows="1" columns="1">
+   <plot col="0" row="0">
+    <range right="52.569041" left="44.574121" top="1765.173087" bottom="1238.343149"/>
+    <limitY/>
+    <curve G="160" name="/dolphin/dynamics/thruster_inputs/data.0" R="160" B="164"/>
+    <curve G="128" name="/dolphin/dynamics/thruster_inputs/data.1" R="128" B="0"/>
+    <curve G="0" name="/dolphin/dynamics/thruster_inputs/data.2" R="128" B="0"/>
+    <curve G="0" name="/dolphin/dynamics/thruster_inputs/data.3" R="0" B="255"/>
+    <transform value="noTransform"/>
+   </plot>
+  </plotmatrix>
+  <plotmatrix tab_name="Power" rows="3" columns="1">
+   <plot col="0" row="0">
+    <range right="1037.930414" left="1022.935162" top="5.980000" bottom="5.780000"/>
+    <limitY/>
+    <curve G="0" name="/dolphin/dynamics/power/I" R="128" B="0"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot col="0" row="1">
+    <range right="1037.930414" left="1022.935162" top="8.365523" bottom="8.365501"/>
+    <limitY/>
+    <curve G="0" name="/dolphin/dynamics/power/V" R="0" B="255"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot col="0" row="2">
+    <range right="1037.930414" left="1022.935162" top="98.177722" bottom="98.176553"/>
+    <limitY/>
+    <curve G="128" name="/dolphin/dynamics/power/percent_remaining" R="0" B="0"/>
+    <transform value="noTransform"/>
+   </plot>
+  </plotmatrix>
+  <currentPlotMatrix index="0"/>
+ </tabbed_widget>
+ <use_relative_time_offset enabled="1"/>
+ <Plugins>
+  <DataLoad_CSV>
+   <default time_axis=""/>
+  </DataLoad_CSV>
+  <DataLoad_ROS_bags>
+   <selected_topics list=""/>
+  </DataLoad_ROS_bags>
+  <ROS_Topic_Streamer>
+   <selected_topics list="/dolphin/dynamics/full_state;/dolphin/dynamics/hil_battery;/dolphin/dynamics/hil_quaternion;/dolphin/dynamics/hil_sensor;/dolphin/dynamics/parameters;/dolphin/dynamics/power;/dolphin/dynamics/thruster_inputs;/dolphin/uwsim/pose_sp"/>
+  </ROS_Topic_Streamer>
+  <RosoutPublisherROS/>
+  <TopicPublisherROS/>
+ </Plugins>
+ <previouslyLoadedStreamer name="ROS_Topic_Streamer"/>
+</root>
+
