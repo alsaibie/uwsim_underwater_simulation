@@ -55,6 +55,7 @@ find_package(catkin REQUIRED COMPONENTS std_msgs sensor_msgs geometry_msgs messa
     full_state.msg
     power.msg
     hil_battery.msg
+    state_control.msg
  )
 
 ## Generate services in the 'srv' folder
