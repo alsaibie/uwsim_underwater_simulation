@@ -12,11 +12,24 @@
 #include <uwsim_msgs/hil_quaternion.h>
 #include <uwsim_msgs/hil_battery.h>
 #include <uwsim_msgs/power.h>
+#include <string>
+
+using namespace std;
+
+template <class T>
+using param_pair = pair<string, T>;
+
 
 namespace uwsim
 {
-    /* Rotation Operations */
-    using namespace Eigen;
+
+    template<typename T>
+    inline void get_param(ros::NodeHandle &nh, pair<string, T> &param_pair_) {
+        nh.getParam(param_pair_.first, param_pair_.second);
+    }
+
+        /* Rotation Operations */
+//    using namespace Eigen;
 
     class UWSim_Sensor
     {
@@ -25,9 +38,9 @@ namespace uwsim
 
         ~UWSim_Sensor() {}
 
-        void start(void);
-
     protected:
+
+        void start(void);
 
         void set_parameters();
 
@@ -53,26 +66,29 @@ namespace uwsim
 
         /** ROS Parameter List */
         std::string _vehicle_name;
-        double _hil_sensor_period_sec;
-        double _hil_quaternion_period_sec;
-        double _hil_battery_period_sec;
-        float _sen_accelerometer_std;
-        float _sen_acc_noise_density;
-        float _sen_acc_bias_diffusion;
-        float _sen_gyro_std;
-        float _sen_gyro_noise_density;
-        float _sen_gyro_bias_diffusion;
-        float _sen_mag_std;
-        float _sen_mag_inclination;
-        float _sen_mag_declination;
-        float _sen_pressure_ref;
-        float _sen_pressure_std;
-        float _sen_temp_ref;
-        float _sen_temp_std;
-        float _att_quaternion_std;
-        float _att_omega_std;
-        float _att_acceleration_std;
+        param_pair<double> _hil_sensor_period_sec{"hil_sensor_period", {}};
+        param_pair<double> _hil_quaternion_period_sec{"hil_quaternion_period", {}};
+        param_pair<double> _hil_battery_period_sec{"hil_battery_period", {}};
 
-        SensorDynamics *_sensor_dyn;
+        param_pair<float> _sen_accelerometer_std{"sensor/accelerometer_std", {}};
+        param_pair<float> _sen_acc_noise_density{"sensor/accelerometer_noise_density", {}};
+        param_pair<float> _sen_acc_bias_diffusion{"sensor/accelerometer_bias_diffusion", {}};
+        param_pair<float> _sen_gyro_std{"sensor/gyro_std", {}};
+        param_pair<float> _sen_gyro_noise_density{"sensor/gryo_noise_density", {}};
+        param_pair<float> _sen_gyro_bias_diffusion{"sensor/gyro_bias_diffusion", {}};
+        param_pair<float> _sen_mag_std{"sensor/mag_std", {}};
+        param_pair<float> _sen_mag_inclination{"sensor/mag_inclination", {}};
+        param_pair<float> _sen_mag_declination{"sensor/mag_declination", {}};
+        param_pair<float> _sen_pressure_ref{"sensor/pressure_ref", {}};
+        param_pair<float> _sen_pressure_std{"sensor/pressure_std", {}};
+        param_pair<float> _sen_temp_ref{"sensor/temp_ref", {}};
+        param_pair<float> _sen_temp_std{"sensor/temp_std", {}};
+
+        param_pair<float> _att_quaternion_std{"att/quaternion_std", {}};
+        param_pair<float> _att_omega_std{"att/omega_std", {}};
+        param_pair<float> _att_acceleration_std{"att/acceleration_std", {}};
+
+        Sensor::SensorDynamics *_sensor_dyn;
     };
 }
+

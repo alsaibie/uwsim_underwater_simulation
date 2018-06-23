@@ -14,7 +14,7 @@ find_package(catkin REQUIRED COMPONENTS roscpp rospy geometry_msgs sensor_msgs t
 set(UWSIM_MSGS_PATH /home/alsaibie/UWSim/install_isolated/)
 find_package(uwsim_msgs PATHS ${UWSIM_MSGS_PATH})
 
-find_package(Eigen3 REQUIRED)
+find_package(Eigen3 3.3 REQUIRED)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -150,11 +150,12 @@ add_executable(${PROJECT_NAME} include/uwsim_sensor/uwsim_sensor.hpp ../dynamics
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
- target_link_libraries(${PROJECT_NAME}
-   ${catkin_LIBRARIES}
-   ${uwsim_msgs_LIBRARIES}
- )
-
+target_link_libraries(
+        ${PROJECT_NAME}
+        ${catkin_LIBRARIES}
+        ${uwsim_msgs_LIBRARIES}
+        ${EIGEN3_DIR}
+)
 #############
 ## Install ##
 #############

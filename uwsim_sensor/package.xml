@@ -62,6 +62,7 @@
   <exec_depend>roscpp</exec_depend>
   <exec_depend>rospy</exec_depend>
   <exec_depend>uwsim_msgs</exec_depend>
+  <exec_depend>message_runtime</exec_depend>
   <exec_depend>eigen</exec_depend>
 
   <!-- The export tag contains other, unspecified, tags -->

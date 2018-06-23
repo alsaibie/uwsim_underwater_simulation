@@ -2,7 +2,7 @@
 // Created by alsaibie on 5/7/18.
 //
 #include "uwsim_sensor/uwsim_sensor.hpp"
-#include <inttypes.h>
+//#include <inttypes.h>
 using namespace uwsim;
 
 UWSim_Sensor::UWSim_Sensor():
@@ -15,38 +15,36 @@ UWSim_Sensor::UWSim_Sensor():
         _v_hil_quaternion_ros_pub(_nh.advertise<uwsim_msgs::hil_quaternion>("/dolphin/dynamics/hil_quaternion", 1)),
         _v_hil_battery_ros_pub(_nh.advertise<uwsim_msgs::hil_battery>("/dolphin/dynamics/hil_battery", 1))
 {
+
     /* Get Parameters */
-    _nh.getParam("uwsim_sensor/hil_sensor_period", _hil_sensor_period_sec);
-    _nh.getParam("uwsim_sensor/hil_quaternion_period", _hil_quaternion_period_sec);
-    _nh.getParam("uwsim_sensor/hil_battery_period", _hil_battery_period_sec);
+    uwsim::get_param<double> (_nh, _hil_sensor_period_sec );
+    uwsim::get_param<double> (_nh, _hil_quaternion_period_sec );
+    uwsim::get_param<double> (_nh, _hil_battery_period_sec );
 
-    _nh.getParam("uwsim_sensor/sensor/accelerometer_std", _sen_accelerometer_std);
-    _nh.getParam("uwsim_sensor/sensor/accelerometer_bias_diffusion", _sen_acc_bias_diffusion);
-    _nh.getParam("uwsim_sensor/sensor/accelerometer_noise_density", _sen_acc_noise_density);
+    uwsim::get_param<float>  (_nh, _sen_accelerometer_std );
+    uwsim::get_param<float>  (_nh, _sen_acc_noise_density );
+    uwsim::get_param<float>  (_nh, _sen_acc_bias_diffusion );
+    uwsim::get_param<float>  (_nh, _sen_gyro_std );
+    uwsim::get_param<float>  (_nh, _sen_gyro_noise_density );
+    uwsim::get_param<float>  (_nh, _sen_gyro_bias_diffusion );
+    uwsim::get_param<float>  (_nh, _sen_mag_std );
+    uwsim::get_param<float>  (_nh, _sen_mag_inclination );
+    uwsim::get_param<float>  (_nh, _sen_mag_declination );
+    uwsim::get_param<float>  (_nh, _sen_pressure_ref );
+    uwsim::get_param<float>  (_nh, _sen_pressure_std );
+    uwsim::get_param<float>  (_nh, _sen_temp_ref );
+    uwsim::get_param<float>  (_nh, _sen_temp_std );
 
-    _nh.getParam("uwsim_sensor/sensor/gyro_std", _sen_gyro_std);
-    _nh.getParam("uwsim_sensor/sensor/gyro_noise_density", _sen_gyro_noise_density);
-    _nh.getParam("uwsim_sensor/sensor/gyro_bias_diffusion", _sen_gyro_bias_diffusion);
+    uwsim::get_param<float>  (_nh, _att_quaternion_std );
+    uwsim::get_param<float>  (_nh, _att_omega_std );
+    uwsim::get_param<float>  (_nh, _att_acceleration_std );
 
-    _nh.getParam("uwsim_sensor/sensor/mag_std", _sen_mag_std);
-    _nh.getParam("uwsim_sensor/sensor/mag_inclination", _sen_mag_inclination);
-    _nh.getParam("uwsim_sensor/sensor/mag_declination", _sen_mag_declination);
-
-    _nh.getParam("uwsim_sensor/sensor/pressure_ref", _sen_pressure_ref);
-    _nh.getParam("uwsim_sensor/sensor/pressure_std", _sen_pressure_std);
-
-    _nh.getParam("uwsim_sensor/sensor/temp_ref", _sen_temp_ref);
-    _nh.getParam("uwsim_sensor/sensor/temp_std", _sen_temp_std);
-
-    //TODO: Implement Properly
-    _nh.getParam("uwsim_sensor/att/quaternion_std", _att_quaternion_std);
-    _nh.getParam("uwsim_sensor/att/omega_std", _att_omega_std);
-    _nh.getParam("uwsim_sensor/att/acceleration_std", _att_acceleration_std);
-
-    _sensor_dyn = new SensorDynamics();
+    _sensor_dyn = new Sensor::SensorDynamics();
 
     set_parameters();
 
+    _sensor_dyn->Initialize();
+    
     start();
 }
 
@@ -54,19 +52,19 @@ void UWSim_Sensor::set_parameters(){
 
     Sensor::Parameters param_;
 
-    param_.acc.std = _sen_accelerometer_std;
-    param_.acc.noise_density = _sen_acc_noise_density;
-    param_.acc.bias_diffusion = _sen_acc_bias_diffusion;
-    param_.gyro.std = _sen_gyro_std;
-    param_.gyro.noise_density = _sen_gyro_noise_density;
-    param_.gyro.bias_diffusion = _sen_gyro_bias_diffusion;
-    param_.mag.std = _sen_mag_std;
-    param_.mag.inclination = _sen_mag_inclination;
-    param_.mag.declination = _sen_mag_declination;
-    param_.pressure.std = _sen_pressure_std;
-    param_.pressure.ref = _sen_pressure_ref;
-    param_.temp.std = _sen_temp_std;
-    param_.temp.ref = _sen_temp_ref;
+    param_.acc.std = _sen_accelerometer_std.second;
+    param_.acc.noise_density = _sen_acc_noise_density.second;
+    param_.acc.bias_diffusion = _sen_acc_bias_diffusion.second;
+    param_.gyro.std = _sen_gyro_std.second;
+    param_.gyro.noise_density = _sen_gyro_noise_density.second;
+    param_.gyro.bias_diffusion = _sen_gyro_bias_diffusion.second;
+    param_.mag.std = _sen_mag_std.second;
+    param_.mag.inclination = _sen_mag_inclination.second;
+    param_.mag.declination = _sen_mag_declination.second;
+    param_.pressure.std = _sen_pressure_std.second;
+    param_.pressure.ref = _sen_pressure_ref.second;
+    param_.temp.std = _sen_temp_std.second;
+    param_.temp.ref = _sen_temp_ref.second;
 
     _sensor_dyn->setParameters(param_);
 
@@ -101,7 +99,7 @@ void UWSim_Sensor::vehicle_power_callback(const uwsim_msgs::power::ConstPtr &pow
     Sensor::States input_state_ = _sensor_dyn->getInputStates();
 
     input_state_.power.bat_vnom = power_msg->V;
-    input_state_.power.bat_I    = power_msg->I;
+    input_state_.power.bat_I_mA    = power_msg->I;
     input_state_.power.bat_percent_remaining = power_msg->percent_remaining;
 
     _sensor_dyn->setInput(input_state_);
@@ -112,6 +110,8 @@ void UWSim_Sensor::send_hil_sensor_msg(){
     Sensor::States output_state_ = _sensor_dyn->getOutputStates();
 
     /* And we stuff and ship msgs */
+//    ROS_INFO("Orientation %f, %f, %f", output_state_.imu.acc(0), output_state_.imu.acc(1), output_state_.imu.acc(2));
+
     uwsim_msgs::hil_sensor msg;
     msg.acc.x   = output_state_.imu.acc(0);
     msg.acc.y   = output_state_.imu.acc(1);
@@ -137,7 +137,6 @@ void UWSim_Sensor::send_hil_quaternion_msg(){
     /* Fill _hil_quaternion_msg and send */
     uwsim_msgs::hil_quaternion msg;
 
-//    ROS_INFO("Orientation %f, %f, %f, %f", full_state.p_q[3], full_state.p_q[4], full_state.p_q[5], full_state.p_q[6]);
     msg.orientation.w = output_state_.att.orientation_q.w();
     msg.orientation.x = output_state_.att.orientation_q.x();
     msg.orientation.y = output_state_.att.orientation_q.y();
@@ -191,26 +190,26 @@ void UWSim_Sensor::start() {
         _sensor_dyn->Iterate(dt);
         last_sensor_sec_ = time_now;
 
-
         double hil_sensor_dt_sec = time_now - last_hil_sensor_sec_;
-        if (hil_sensor_dt_sec != 0 && hil_sensor_dt_sec > _hil_sensor_period_sec){
+        if (hil_sensor_dt_sec != 0 && hil_sensor_dt_sec > _hil_sensor_period_sec.second){
             send_hil_sensor_msg();
             last_hil_sensor_sec_ = time_now;
         }
 
         double hil_quaternion_dt_sec = time_now - last_hil_quaternion_sec_;
-        if (hil_quaternion_dt_sec != 0 && hil_quaternion_dt_sec > _hil_quaternion_period_sec){
+        if (hil_quaternion_dt_sec != 0 && hil_quaternion_dt_sec > _hil_quaternion_period_sec.second){
             send_hil_quaternion_msg();
             last_hil_quaternion_sec_ = time_now;
         }
 
         double hil_battery_dt_sec = time_now - last_hil_battery_sec_;
-        if (hil_battery_dt_sec != 0 && hil_battery_dt_sec > _hil_battery_period_sec){
+        if (hil_battery_dt_sec != 0 && hil_battery_dt_sec > _hil_battery_period_sec.second){
             send_hil_batt_msg();
             last_hil_battery_sec_ = time_now;
         }
 
         ros::spinOnce();
+        r.sleep();
     }
 }
 

@@ -24,6 +24,10 @@ namespace px4
         ~Mavlink() {}
 
     protected:
+
+
+        void start(void);
+
         mavconn::MAVConnInterface::Ptr _mavconnlink;
         ros::NodeHandle _nh;
 
@@ -41,6 +45,9 @@ namespace px4
         /*MAV handles */
         void handle_msg(const mavlink::mavlink_message_t *mmsg, const mavconn::Framing framing);
         void handle_msg_actuator_output(const mavlink::mavlink_message_t *msg);
+
+        double _time_since_last_thruster_msg;
+        bool   _started_thruster_msg_publishing;
 
     };
 
