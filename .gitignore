@@ -4,3 +4,4 @@
 dynamics_stack/tools/*
 *.ipynb_checkpoints
 *venv
+scripts/.*
