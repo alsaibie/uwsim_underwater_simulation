@@ -26,7 +26,7 @@ namespace Dynamics_Math{
     }
 
     inline double poly_abs_discontinuos_positive(const VectorXd &v, const double x) {
-        /** Simple nth degree polynomial - reserves sign of x, assumes positive curve fitting */
+        /** Simple nth degree polynomial - preserves sign of x, assumes positive curve fitting */
         double ret = v(0);
         for (int k = 1; k < v.size(); k++ ){
             ret += v(k) * pow(fabs(x), k);

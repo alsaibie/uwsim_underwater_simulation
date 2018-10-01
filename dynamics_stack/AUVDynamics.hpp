@@ -41,6 +41,7 @@ namespace Dynamics {
         Vector6d Cvv{}; // N  or Nm
         Vector6d gRB{}; // N or Nm
         MatrixXd B{}; // Dimensionless
+        MatrixXd B_T{}; // Submatrix of B, for thruster velocity calculations
         Vector6d tau{}; // N or Nm
     };
 
@@ -80,6 +81,8 @@ namespace Dynamics {
             double minsat{};
             Matrix<int, 4, 1> dir_inversion{};
             Vector3i pwm_range{};
+            double impeller_D{};
+            double NKT_Coefficient{}; /* Advance Speed Thrust Compensation */
 
         } actuator;
 
@@ -144,7 +147,7 @@ namespace Dynamics {
 
         VectorXd motors_transient_dynamics(const VectorXd &w_hz_sp, const double &dt);
 
-        VectorXd thrust_n(const VectorXd &w_hz_tr);
+        VectorXd thrust_n(const VectorXd &w_hz_tr) ;
 
         VectorXd torque_n(const VectorXd &w_hz_tr);
 

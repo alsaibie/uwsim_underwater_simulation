@@ -34,6 +34,7 @@ unit_sim::unit_sim():
     /* Sensor Object */
     _sensor_dyn = new Sensor::SensorDynamics();
     get_set_sensor_parameters();
+    _sensor_dyn->Initialize();
 
     /* Pos Control Object */
     _pos_control = new PController::PositionController();
@@ -103,6 +104,8 @@ void unit_sim::get_set_dynamics_parameters(void) {
     uwsim::get_param<double>         (yn_dynamics, _actuators_minsat );
     uwsim::get_param<vector<int>>    (yn_dynamics, _actuators_dir_inversion );
     uwsim::get_param<vector<int>>    (yn_dynamics, _actuators_pwm_range );
+    uwsim::get_param<double>         (yn_dynamics, _actuators_impeller_d );
+    uwsim::get_param<double>         (yn_dynamics, _actuators_NKT_Coefficient );
 
     uwsim::get_param<vector<double>> (yn_dynamics, _kBd_coefficients );
     uwsim::get_param<double>         (yn_dynamics, _bat_c_vmax );
@@ -151,6 +154,8 @@ void unit_sim::get_set_dynamics_parameters(void) {
     constants_.actuator.pwm_range << _actuators_pwm_range.second[0], _actuators_pwm_range.second[1], _actuators_pwm_range.second[2];
     constants_.actuator.dir_inversion << _actuators_dir_inversion.second[0], _actuators_dir_inversion.second[1],
             _actuators_dir_inversion.second[2], _actuators_dir_inversion.second[3];
+    constants_.actuator.impeller_D = _actuators_impeller_d.second;
+    constants_.actuator.NKT_Coefficient = _actuators_NKT_Coefficient.second;
 
     constants_.battery.c_vcut = _bat_c_vcut.second;
     constants_.battery.cell_n = _bat_cell_n.second;

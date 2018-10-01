@@ -1,0 +1,67 @@
+# Attitude Controller Settings
+
+Control/DP_ROLL_P: .25
+Control/DP_ROLL_FF: 0.01
+Control/DP_ROLLRATE_P: .000025
+Control/DP_ROLLRATE_I: 0.01
+Control/DP_RR_INT_LIM: 0.01
+Control/DP_ROLLRATE_D: 0.0001
+Control/DP_ROLLRATE_FF: 0.1
+Control/DP_RTAU_MAXSP: .196 # This should correlate with the max tau possible for the thruster
+
+Control/DP_PITCH_P: 0.75
+Control/DP_PITCHRATE_P: 0.0001
+Control/DP_PITCHRATE_I: 0.2
+Control/DP_PR_INT_LIM: 0.75
+Control/DP_PITCHRATE_D: 0.00001
+Control/DP_PITCHRATE_FF: 0.005
+Control/DP_PTAU_MAXSP: 0.17 # Change carefully
+
+Control/DP_YAW_P: 0.75
+Control/DP_YAWRATE_P: 0.0001
+Control/DP_YAWRATE_I: 0.2
+Control/DP_YR_INT_LIM: 0.75
+Control/DP_YAWRATE_D: 0.00001
+Control/DP_YAWRATE_FF: 0.005
+Control/DP_YTAU_MAXSP: 0.17 # Change carefully
+
+Control/DP_DTERM_CUTOFF: 0.25
+
+Control/DP_TPA_BREAK_P: 1.0
+Control/DP_TPA_BREAK_I: 1.0
+Control/DP_TPA_BREAK_D: 1.0
+Control/DP_TPA_RATE_P: 0.0
+Control/DP_TPA_RATE_I: 0.0
+Control/DP_TPA_RATE_D: 0.0
+
+Control/DP_ROLLRATE_MAX: 150.0
+Control/DP_PITCHRATE_MAX: 100.0
+Control/DP_YAWRATE_MAX: 100.0
+Control/DP_ROLLRAUTO_MAX: 180.0
+Control/DP_ACRO_R_MAX: 360.0
+Control/DP_ACRO_P_MAX: 360.0
+Control/DP_ACRO_Y_MAX: 360.0
+Control/DP_ACRO_EXPO: 0.69
+Control/DP_ACRO_EXPO_R: 0.69
+Control/DP_ACRO_SUPEXPO: 0.7
+Control/DP_ACRO_SUPEXPOR: 0.7
+
+Control/DP_RATT_TH: 1.0
+Control/DP_BAT_SCALE_EN: 0
+
+Control/DP_HZ_THRST_C0: 3.73E+01
+Control/DP_HZ_THRST_C1: 6.64E+01
+Control/DP_HZ_THRST_C2: -1.20E+01
+
+# Guestimated from T=Kx^2 where T = 5000g.mm and x =120Hz
+Control/DP_HZ_TORQ_C2: 4.99E+4
+
+Control/DP_V_HZ_C0: 1.41E+00
+Control/DP_V_HZ_C1: -1.58E-02
+Control/DP_V_HZ_C2: 6.13E-04
+
+Control/DP_V_HZ_N_C0: 1.68E-01
+Control/DP_V_HZ_N_C1: -2.21E-01
+Control/DP_V_HZ_N_C2: 1.01
+
+Contro/DP_ROTOR_R: 3.00E-02

@@ -11,9 +11,9 @@ f = open(data_path + 'generic_input' +
 # TODO: make separate files for each case
 writer = csv.writer(f, escapechar=' ', quoting=csv.QUOTE_NONE)
 cases = ["Sinusoid", "Square", "Ramp", 'Flat']
-roll_enable = 0.0
+roll_enable = .5
 pitch_enable = 0
-yaw_enable = 0.5
+yaw_enable = 0
 thrust_enable = 0
 case = "Flat"
 

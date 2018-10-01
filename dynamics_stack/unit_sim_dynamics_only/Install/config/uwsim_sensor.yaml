@@ -1,0 +1,24 @@
+## Simulated IMU Properties
+hil_sensor_period: 0.02       # Publish imu raw rate at 50 Hz
+hil_quaternion_period: 0.05   # Publish quaternion at 200 Hz
+hil_battery_period: 0.1       # Publish battery at 10 Hz
+
+## Sensor Properties
+sensor/accelerometer_std: 1
+sensor/accelerometer_noise_density: 1.68E-3
+sensor/accelerometer_bias_diffusion: 5.6475E-5
+sensor/gyro_std: 1
+sensor/gryo_noise_density: 1.784E-4
+sensor/gyro_bias_diffusion: 2.16E-5
+sensor/mag_std: 0.01
+sensor/pressure_std: 0.01
+sensor/temp_std: 0.01
+sensor/pressure_ref: 1000 # mmH20
+sensor/temp_ref: 23.5 # C
+sensor/mag_declination: -5.17 # deg use zurich just to match mavlink for now
+sensor/mag_inclination: 20 # deg TODO: The actual value is 60deg but it doesn't behave sensibly so keep it low for now
+
+## Attitude Properties
+att/quaternion_std: 0.0001    # Standard Deviation on euler Measurement
+att/omega_std: 0.002               # Standard Deviation on Angular Velocity Measurement
+att/acceleration_std: 0.001         # Standard deviation on Linear Acceleration

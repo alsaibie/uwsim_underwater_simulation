@@ -50,9 +50,10 @@ void AUVDynamics::initialize(void){
             0, 0, 0, 0, inv_(0), inv_(1), inv_(2), inv_(3),
             -L, L, -L, L, 0, 0, 0, 0,
             -L, L, L, -L, 0, 0, 0, 0;
-
+    _dparam.B_T = _dparam.B.bottomLeftCorner(2,4);
     std::cout << "Mass Matrix" << std::endl << _dparam.Mv << std::endl;
     std::cout << "B Matrix" << std::endl << _dparam.B << std::endl;
+    std::cout << "Sub B Matrix" << std::endl << _dparam.B_T << std::endl;
     std::cout <<" Unity Dvv Vector: " <<  std::endl << damping_vector(VectorXd::Constant(6, 1)) << endl;
     std::cout <<" Unity Cv Matrix: " <<  std::endl << coriolis_matrix(VectorXd::Constant(6, 1)) << endl;
     std::cout <<" Unity Cvv Vector: " <<  std::endl << coriolis_matrix(VectorXd::Constant(6, 1)) * VectorXd::Constant(6, 1) << endl;
@@ -207,15 +208,32 @@ VectorXd AUVDynamics::motors_transient_dynamics(const VectorXd &w_hz_sp, const d
 VectorXd AUVDynamics::thrust_n(const VectorXd &w_hz_tr) {
     /** Compute the Thrust in N given speed of rotor in Hz
     *   Apply the thruster dead-zone truncation here
+    *   Note: Positive motor speed means thrust in forward Surge direction,
+     *   Rotation Direction / Torque sign is carried in B Matrix
     **/
     static VectorXd thrust_n_ = VectorXd::Zero(w_hz_tr.rows());
+    static VectorXd v_t = VectorXd::Zero(w_hz_tr.rows());
 
     thrust_n_.setZero();
-
+    // TODO: ADD rotational effects to speed
+    v_t << _state.vel(0) * VectorXd::Constant(4,1) + _dparam.B_T.transpose() *_state.vel.bottomRows(2);
     for(int k = 0; k < _constants.actuator.count; k++) {
         thrust_n_(k) = poly_abs_discontinuos_positive(_constants.actuator.kf, w_hz_tr(k));
+
+        double J = 0.00;
+        /* We assume bidirectional symmetry advance speed effect on thrust */
+        if (fabs(w_hz_tr(k)) > 10.0) {
+            J = v_t(k) / (_constants.actuator.impeller_D * w_hz_tr(k) * 2.00 * M_PI);
+            if ((w_hz_tr(k) * v_t(k)) > 0) {
+                thrust_n_(k) *= max((1 +  _constants.actuator.NKT_Coefficient * J * J), 0.0);
+            }
+            else if ((w_hz_tr(k) * v_t(k)) < 0) {
+                thrust_n_(k) *= max((1 - _constants.actuator.NKT_Coefficient * J * J), 0.0);
+            }
+        }
     }
-    return thrust_n_;
+
+    return thrust_n_ ;
 }
 
 VectorXd AUVDynamics::torque_n(const VectorXd &w_hz_tr) {

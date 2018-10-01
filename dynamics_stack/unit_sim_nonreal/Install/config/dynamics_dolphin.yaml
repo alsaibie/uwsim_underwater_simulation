@@ -21,7 +21,8 @@ dynamics/radius: [.05, .06, .07]
 dynamics/tensor: [410461.0E-9, 0, 0, 0, 338994.0E-9, 0, 0, 0, 546986.0E-9]
 
 ### Damping polynomial coefficients (Velocity to Damping relationship) D(|v|) v: N or Nm
-dynamics/damping_ksurge:  [1.29E-02, -7.19E-03, 1.06E+00]  # D(|v|): N
+dynamics/damping_ksurge:  [1.29E-02, -7.19E-03, 1.06E+00]  # D(|v|): N - Open Water
+#dynamics/damping_ksurge:  [-3.09E-02, 2.91E-01, 1.91E+00]  # D(|v|): N - In Pipe
 dynamics/damping_ksway:   [-3.07E-03, 8.97E-02, 2.14E+00]  # D(|v|): N
 dynamics/damping_kheave:  [3.44E-02, -2.74E-01, 3.75E+00]  # D(|v|): N
 # TODO: Use pitch coefficients for now, redo CFD and get cleaner nonzero values curve for roll and yaw
@@ -33,12 +34,16 @@ dynamics/density: 1000.0
 ### Actuator Properties
 dynamics/num_actuators: 4
 #Actuator kF polynomial coefficients (Thrust to Speed relationship) T(n): N(Hz)
+#dynamics/actuators_kf: [-2.41E-01, 1.16E-03, 3.14E-04]
 dynamics/actuators_kf: [-2.10E-01, 1.68E-03, 1.27E-04]
 #Actuator kM polynomial coefficients (Torque to Speed relationship) Tr(n): N.m(Hz)
+#dynamics/actuators_km: [-1.17E-06, -6.35E-06, 4.02E-04]
 dynamics/actuators_km: [0, 0, 3.40E-6] # Guestimated from T=Kx^2 where T = 5000g.mm and x =120Hz
-#Actuator kV coefficients (Motor Actual Kv Coefficients) n(V): Hz(Volts)
+#Actuator kV coefficients (Motor Actual Kv Coefficients) n(V):Hz(Volts)
+#dynamics/actuators_kV: [6.79E+00, 1.56E+01, -7.66E-01]
 dynamics/actuators_kV: [5.85E+00, 2.25E+01, -1.09E+00]
 #Actuators current draw coefficients I(n)
+#dynamics/actuators_kI: [-4.38E+00, 3.11E+01, -1.50E+00, 2.76E-02]
 dynamics/actuators_kI: [1.47E+00, 1.62E+01, -5.61E-01, 8.32E-03]
 #Actuators acting radius (meters) TODO: VERIFY
 dynamics/actuators_radius: .03
@@ -52,7 +57,11 @@ dynamics/actuators_minsat: -1
 dynamics/actuators_inversion: [1, 1,  -1, -1]
 # PWM Range [Min, Mid, Max]
 dynamics/actuators_pwm: [1100, 1500, 1900]
-
+# Impeller Diameter [m]
+dynamics/impeller_d: 0.030
+# Advance Speed Thrust Compensation Coefficient
+dynamics/actuators_NKT_Coefficient: -73.4
+#dynamics/actuators_NKT_Coefficient: 0
 
 ### Battery Properties
 #Battery discharge rate coefficients : mV

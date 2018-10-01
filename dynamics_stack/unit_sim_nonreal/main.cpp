@@ -12,10 +12,14 @@ using namespace uwsim;
 void unit_sim::start() {
 
     /* sample times */
+
+    int simulation_mode = 1; // 0: Direct Dynamics, 1: Attitude Control
+    int attitude_control_mode = 1; // 0: Rate Mode, 1: Attitude Mode
+
     auto auv_dyn_dt_msec_ = _diffq_period.second * 1000; // Assuming this is the fastest
-    auto sensor_dt_msec_ = _pub_period.second * 1000;
+    auto sensor_dt_msec_ = _hil_sensor_period_sec.second * 1000;
     auto pos_control_dt_msec_ = _pub_period.second * 1000;
-    auto att_control_dt_msec_ = _pub_period.second * 1000;
+    auto att_control_dt_msec_ = _hil_sensor_period_sec.second * 1000;
     auto command_dt_msec_ = 10.0;
 
     /* scheduling multipliers */
@@ -34,7 +38,7 @@ void unit_sim::start() {
     FILE *fp_in;
 
     ofstream fp_out_dynamics, fp_out_dyn_param_Mv_, fp_out_dyn_param_Cv_, fp_out_dyn_param_Dv_, fp_out_dyn_param_g_,
-            fp_out_dyn_param_tau_, fp_out_sensor_, fp_out_pcontroller_, fp_out_acontroller_;
+            fp_out_dyn_param_tau_, fp_out_power_, fp_out_sensor_, fp_out_pcontroller_, fp_out_acontroller_;
 
     float ch1_ = 0.0f, ch2_ = 0.0f, ch3_ = 0.0f, ch4_ = 0.0f;
     int ret;
@@ -51,6 +55,9 @@ void unit_sim::start() {
     Dynamics::DynamicParameters dyn_param_ = _auv_dyn->getDynamicParameters();
     fp_out_dyn_param_Mv_ << "0,";
     uwsim::writeToCSVfile(fp_out_dyn_param_Mv_, dyn_param_.Mv, uwsim::CSVFormat_br);
+
+    fp_out_power_.open((_data_path + "dynamics_power_output.txt").c_str());
+    fp_out_power_ << "time,Vnom,I_mA,mAh_remaining\n";
 
     fp_out_dyn_param_Cv_.open((_data_path + "dynamics_param_output_Cv.txt").c_str());
     uwsim::print_numerated_header(fp_out_dyn_param_Cv_, "c", 6);
@@ -107,6 +114,11 @@ void unit_sim::start() {
             uwsim::writeToCSVfile(fp_out_dynamics, outputs_.vel, uwsim::CSVFormat_c);
             uwsim::writeToCSVfile(fp_out_dynamics, outputs_.pos_dot, uwsim::CSVFormat_c);
             uwsim::writeToCSVfile(fp_out_dynamics, outputs_.vel_dot, uwsim::CSVFormat_br);
+
+            fp_out_power_ <<
+                          (long) (dynamics_iteration_ * auv_dyn_dt_msec_) << ",";
+            fp_out_power_ << outputs_.power.bat_vnom << "," << outputs_.power.bat_I_mA
+                          << "," << outputs_.power.bat_percent_remaining << "\n";
 
             fp_out_dyn_param_Cv_ <<
                                  (long) (dynamics_iteration_ * auv_dyn_dt_msec_) << ",";
@@ -191,7 +203,6 @@ void unit_sim::start() {
             acontrol_mode_.mode = AController::CONTROL_MODE::Manual;
             _att_control->updateControlMode(acontrol_mode_);
 
-            // TODO: Fill From Dynamics for now but later from Sensor with added noise
             AController::States auv_state_;
             matrix::Quaternionf attq_((float) sensor_output_.att.orientation_q.w(),
                                       (float) sensor_output_.att.orientation_q.x(),
@@ -218,20 +229,31 @@ void unit_sim::start() {
 
             /* And update to controller */
             _att_control->updateStates(auv_state_);
-
             AController::Setpoints::Attitude controller_att_sp;
-            controller_att_sp.q = pcontrol_output_.orientation_q;
-            _att_control->updateAttitudeSetpoint(controller_att_sp);
-
-            _att_control->controlAttitude((float) (att_control_dt_msec_ / 1000.0f));
-
-
             AController::Setpoints::Rates controller_rates_sp;
-            controller_rates_sp = _att_control->getRateSetpoint();
-            controller_rates_sp.thrust = pcontrol_output_.thrust;
 
-            _att_control->updateRateSetpoint(controller_rates_sp);
-            _att_control->controlRates((float) (att_control_dt_msec_ / 1000.0f));
+            if(attitude_control_mode == 0){
+
+                // TODO: Scale manual input accordingly
+                controller_rates_sp.rpy = matrix::Vector3f(ch1_, ch2_, ch3_);
+                controller_rates_sp.thrust = ch4_;
+
+                _att_control->updateRateSetpoint(controller_rates_sp);
+                _att_control->controlRates((float) (att_control_dt_msec_ / 1000.0f));
+            }
+            else if (attitude_control_mode == 1){
+                controller_att_sp.q = pcontrol_output_.orientation_q;
+                _att_control->updateAttitudeSetpoint(controller_att_sp);
+
+                _att_control->controlAttitude((float) (att_control_dt_msec_ / 1000.0f));
+
+                controller_rates_sp = _att_control->getRateSetpoint();
+                controller_rates_sp.thrust = pcontrol_output_.thrust;
+
+                _att_control->updateRateSetpoint(controller_rates_sp);
+                _att_control->controlRates((float) (att_control_dt_msec_ / 1000.0f));
+            }
+
 
             /* Log Att Controller output */
             matrix::Vector3f acontrol_tau_outputs_ = _att_control->getTauSetpoint();
@@ -245,12 +267,17 @@ void unit_sim::start() {
                                 acontrol_outputs_.actuator(2) << "," << acontrol_outputs_.actuator(3) << "\n";
 
             /* Pass new input to dynamics */
-//            inputs_.w_pwm << Dynamics_Math::unity_to_pwm(ch1_), Dynamics_Math::unity_to_pwm(ch2_),
-//                    Dynamics_Math::unity_to_pwm(ch3_), Dynamics_Math::unity_to_pwm(ch4_);
-            inputs_.w_pwm << Dynamics_Math::unity_to_pwm(acontrol_outputs_.actuator(0)),
+            if (simulation_mode == 0){
+                inputs_.w_pwm << Dynamics_Math::unity_to_pwm(ch1_), Dynamics_Math::unity_to_pwm(ch2_),
+                        Dynamics_Math::unity_to_pwm(ch3_), Dynamics_Math::unity_to_pwm(ch4_);
+            }
+            else if (simulation_mode == 1){
+                inputs_.w_pwm << Dynamics_Math::unity_to_pwm(acontrol_outputs_.actuator(0)),
                     Dynamics_Math::unity_to_pwm(acontrol_outputs_.actuator(1)),
                     Dynamics_Math::unity_to_pwm(acontrol_outputs_.actuator(2)),
                     Dynamics_Math::unity_to_pwm(acontrol_outputs_.actuator(3));
+            }
+
             _auv_dyn->setInput(inputs_);
 
         }

@@ -33,7 +33,7 @@ void SensorDynamics::Initialize(){
 /* Store Magnetic Declination/Inclination Vector q = R(Yaw:Declination)*R(Pitch:Inclination) */
     qmag_fu = euler2Quaterniond(Vector3d(0.0, _param.mag.inclination * M_PI / 180.0,
                                          _param.mag.declination * M_PI / 180.0)).inverse();
-
+    std::cout<< "inclination: " <<  _param.mag.inclination << " Declination: " << _param.mag.declination << std::endl;
     qmag_fu.normalize();
 
 }
@@ -46,21 +46,21 @@ void SensorDynamics::Initialize(){
  * **/
 void SensorDynamics::acclerometer_real(Vector3d &acc, double dt) {
 
-    static double bias = 0;
+    static double bias[3] = {0, 0, 0};
     for (uint8_t k = 0; k < 3; k++){
-        bias = bias + _param.acc.bias_diffusion * _sen_acc_dist(_rand_generator) * sqrt(dt);
-        acc[k] +=(float)(bias + _param.acc.noise_density * _sen_acc_dist(_rand_generator) / sqrt(dt));
+        bias[k] = bias[k] + _param.acc.bias_diffusion * _sen_acc_dist(_rand_generator) * sqrt(dt);
+        acc[k] += bias[k] + _param.acc.noise_density * _sen_acc_dist(_rand_generator) / sqrt(dt);
     }
-
 }
 
 void SensorDynamics::gyroscope_real(Vector3d &gyro, double dt) {
 
-    static double bias = 0;
+    static double bias[3] = {0, 0, 0};
     for (uint8_t k = 0; k < 3; k++){
-        bias = bias + _param.gyro.bias_diffusion * _sen_gyro_dist(_rand_generator) * sqrt(dt);
-        gyro[k] +=(float)(bias + _param.gyro.noise_density * _sen_gyro_dist(_rand_generator) / sqrt(dt));
+        bias[k] =  bias[k] + _param.gyro.bias_diffusion * _sen_gyro_dist(_rand_generator) * sqrt(dt);
+        gyro[k] += bias[k] + _param.gyro.noise_density * _sen_gyro_dist(_rand_generator) / sqrt(dt);
     }
+
 }
 
 void SensorDynamics::magnetometer_real(Vector3d &mag) {
@@ -119,6 +119,8 @@ void SensorDynamics::Iterate(const double &dt){
 
     /* Compensate true magnetic inclination/declination */
     Quaterniond qnorth = QuaternionVectord(Vector3d(1, 0, 0));
+
+
     Vector3d mag_u  = (qmag_fu * qnorth * qmag_fu.inverse()).vec();
 
     /* Bring to body d frame */
